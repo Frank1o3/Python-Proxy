@@ -71,7 +71,7 @@ async def handle_connect(
         writer.close()
 
 
-async def handle_http(reader: asyncio.StreamReader, writer, method, url, version):
+async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
     global cache, request_frequency, save
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
