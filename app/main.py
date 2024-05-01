@@ -89,6 +89,16 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
 
             # Update request frequency for cached URL
             request_frequency[url] += 1
+
+            logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
+
+            # Check cache size and evict least used items if needed
+            if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
+                logging.info("evict_cache_items")
+                evict_cache_items()
+            if (save % math.floor((MAX_CACHE_SIZE / 2))) == 0:
+                logging.info("saving cache")
+                save_cache()
             return
 
         # Perform the HTTP request
@@ -106,12 +116,14 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         # Cache the response
         cache[url] = data
         request_frequency[url] += 1
-        logging.info(f"{len(cache)} {round((MAX_CACHE_SIZE / 2))}")
+
+        logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
+
         # Check cache size and evict least used items if needed
         if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
             logging.info("evict_cache_items")
             evict_cache_items()
-        if (save % 10) == math.floor((MAX_CACHE_SIZE / 2)):
+        if (save % math.floor((MAX_CACHE_SIZE / 2))) == 0:
             logging.info("saving cache")
             save_cache()
 
