@@ -131,5 +131,5 @@ if __name__ == "__main__":
             httpd.serve_forever()
         except KeyboardInterrupt:
             logging.info("Received KeyboardInterrupt. Shutting down server...")
-            httpd.shutdown()
+            httpd.shutdown_request()
             httpd.server_close()
