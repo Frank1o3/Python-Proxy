@@ -19,7 +19,7 @@ cache = {}
 request_frequency = defaultdict(int)
 
 # Maximum size of the cache
-MAX_CACHE_SIZE = 10
+MAX_CACHE_SIZE = 25
 
 # Cache file path
 CACHE_FILE = "cache.pkl"
@@ -107,6 +107,8 @@ async def handle_http(reader: asyncio.StreamReader, writer, method, url, version
         logging.info(len(cache))
         # Check cache size and evict least used items if needed
         if len(cache) > MAX_CACHE_SIZE:
+            save_cache()
+        if len(cache) > (MAX_CACHE_SIZE / 2):
             evict_cache_items()
 
         writer.write(data)
@@ -159,7 +161,6 @@ def evict_cache_items():
         if request_frequency[url] < 5:
             del request_frequency[url]
             del cache[url]
-    save_cache()
 
 
 async def load_cache():
