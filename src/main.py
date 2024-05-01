@@ -98,9 +98,6 @@ class Proxy(socketserver.BaseRequestHandler):
             logging.info(f"HTTP request handled for {url.decode('utf-8')}")
         except Exception as e:
             logging.error(f"Error handling HTTP request: {e}")
-        finally:
-            if conn is not None:
-                conn.close()
 
     def relay(self, source, destination):
         try:
