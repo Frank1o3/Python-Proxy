@@ -109,7 +109,7 @@ class Proxy(socketserver.BaseRequestHandler):
                     logging.info("Connection closed")
                     break
                 destination.sendall(data)
-                logging.log(f"Data {data}")
+                logging.info(f"Data {data}")
         except Exception as e:
             logging.error(f"Error relaying data: {e}")
 
