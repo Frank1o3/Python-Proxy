@@ -13,6 +13,7 @@ logging.basicConfig(
 
 # Cache dictionary to store HTTP responses
 cache = {}
+request_count = 0
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -33,9 +34,10 @@ class Proxy(socketserver.BaseRequestHandler):
             self.handle_http(method, url, version)
 
         # Clear cache after every 100 requests
-        if self.server.request_count % 100 == 0:
+        if request_count % 100 == 0:
             logging.info("Clearing cache")
             cache.clear()
+        request_count += 1
 
     def handle_connect(self, url):
         host, _, port = url.decode("utf-8").rpartition(":")
@@ -116,4 +118,9 @@ if __name__ == "__main__":
     port = 8080  # Choose a port for your proxy server
     with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
         logging.info(f"Serving at port {port} on IP {server_ip}")
-        httpd.serve_forever()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            logging.info("Received KeyboardInterrupt. Shutting down server...")
+            httpd.shutdown()
+            httpd.server_close()
