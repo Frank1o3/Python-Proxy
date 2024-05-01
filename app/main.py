@@ -1,10 +1,13 @@
-import ssl
-import pickle
 import asyncio
 import logging
+import ssl
+import time
 import certifi
 import http.client
 from urllib.parse import urlparse
+import pickle
+import os
+from collections import defaultdict
 
 # Configure logging
 logging.basicConfig(
@@ -13,30 +16,27 @@ logging.basicConfig(
 
 # Cache dictionary to store HTTP responses
 cache = {}
-request_count = 0
+request_frequency = defaultdict(int)
+
+# Maximum size of the cache
+MAX_CACHE_SIZE = 10
+
+# Cache file path
+CACHE_FILE = "cache.pkl"
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-    global request_count, cache
-
     try:
         request = await reader.readuntil(b"\r\n\r\n")
 
         if not request:
             return
-
         request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
-        logging.info(request)
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
         else:
             await handle_http(reader, writer, method, url, version)
-
-        request_count += 1
-        if request_count % 100 == 0:
-            logging.info("Clearing cache")
-            cache.clear()
     except Exception as e:
         logging.error(f"Error handling request: {e}")
     finally:
@@ -69,7 +69,7 @@ async def handle_connect(
 
 
 async def handle_http(reader: asyncio.StreamReader, writer, method, url, version):
-    global cache
+    global cache, request_frequency
 
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
@@ -84,8 +84,12 @@ async def handle_http(reader: asyncio.StreamReader, writer, method, url, version
             logging.info(f"Cache hit for {url.decode('utf-8')}")
             writer.write(cache[url])
             await writer.drain()
+
+            # Update request frequency for cached URL
+            request_frequency[url] += 1
             return
 
+        # Perform the HTTP request
         if parsed_url.scheme == "https":
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
@@ -97,7 +101,13 @@ async def handle_http(reader: asyncio.StreamReader, writer, method, url, version
         response = conn.getresponse()
         data = response.read()
 
+        # Cache the response
         cache[url] = data
+        request_frequency[url] += 1
+        logging.info(len(cache))
+        # Check cache size and evict least used items if needed
+        if len(cache) > MAX_CACHE_SIZE:
+            evict_cache_items()
 
         writer.write(data)
         await writer.drain()
@@ -116,10 +126,8 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
-        # Handle cancellation gracefully
         logging.info("Relay task cancelled.")
     except ConnectionResetError:
-        # Connection reset by peer
         logging.info("Connection reset by peer.")
     except Exception as e:
         logging.error(f"Error relaying data: {e}")
@@ -127,7 +135,45 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         writer.close()
 
 
+def save_cache():
+    global cache
+
+    # Save cache to file
+    if os.path.exists(CACHE_FILE):
+        os.remove(CACHE_FILE)
+    time.sleep(0.5)
+    with open(CACHE_FILE, "wb") as file:
+        pickle.dump(cache, file)
+
+
+def evict_cache_items():
+    global cache, request_frequency
+
+    # Sort cache items by request frequency in descending order
+    sorted_items = sorted(request_frequency.items(), key=lambda x: x[1], reverse=True)
+
+    # Remove least used items until cache size is within limits
+    while len(cache) > MAX_CACHE_SIZE:
+        url, _ = sorted_items.pop()
+        logging.info(f"Url: {url} was used: {request_frequency[url]}")
+        if request_frequency[url] < 5:
+            del request_frequency[url]
+            del cache[url]
+    save_cache()
+
+
+async def load_cache():
+    global cache
+
+    # Load cache from file if it exists
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "rb") as file:
+            cache = pickle.load(file)
+
+
 async def main():
+    await load_cache()
+
     server_ip = "10.0.0.31"  # Use your server's IP address
     port = 8080  # Choose a port for your proxy server
 
