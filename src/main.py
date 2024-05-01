@@ -109,8 +109,15 @@ class Proxy(socketserver.BaseRequestHandler):
                     logging.info("Connection closed")
                     break
                 destination.sendall(data)
-                decoded_data = data.decode("utf-8")
-                logging.info(f"Data {decoded_data}")
+                try:
+                    decoded_data = data.decode(
+                        "utf-8", errors="replace"
+                    )  # Decode data with error handling
+                except UnicodeDecodeError:
+                    decoded_data = repr(
+                        data
+                    )  # If decoding fails, represent the bytes as a string
+                logging.info(f"Relayed data: {decoded_data}")
         except Exception as e:
             logging.error(f"Error relaying data: {e}")
 
