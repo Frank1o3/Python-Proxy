@@ -105,18 +105,18 @@ class Proxy(socketserver.BaseRequestHandler):
         try:
             while True:
                 data = source.recv(4096)
-                logging.log(data)
                 if not data:
                     logging.info("Connection closed")
                     break
                 destination.sendall(data)
+                logging.log(f"Data {data}")
         except Exception as e:
             logging.error(f"Error relaying data: {e}")
 
 
 if __name__ == "__main__":
     server_ip = "10.0.0.31"  # Use your server's IP address
-    port = random.randint(8000,9000)  # Choose a port for your proxy server
+    port = 8080  # Choose a port for your proxy server
     with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
         logging.info(f"Serving at port {port} on IP {server_ip}")
         try:
