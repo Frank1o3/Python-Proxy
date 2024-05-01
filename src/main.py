@@ -28,7 +28,6 @@ class Proxy(socketserver.BaseRequestHandler):
         if not request_line:
             return
         method, url, version = request_line.split(b" ", 2)
-        logging.info(f"Request: {request_line}")
         if method == b"CONNECT":
             self.handle_connect(url)
         else:
