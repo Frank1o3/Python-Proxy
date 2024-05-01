@@ -1,4 +1,5 @@
 import net from 'net';
+import { isDataView } from 'util/types';
 
 export class Proxy {
     private IP:string;
@@ -13,8 +14,12 @@ export class Proxy {
 
     public Run() {
         this.Server.on("connection", (soc:net.Socket) => {
-            soc.on("connect", (data:Buffer) => {
-                console.log(data);
+            soc.on("data", (DATA:Buffer) => {
+                const data = DATA.toString("utf-8");
+                const RequestData = data.split("\n\r");
+                RequestData.forEach(value => {
+                    console.log(value," \n");
+                });
             });
         });
         this.Start()
