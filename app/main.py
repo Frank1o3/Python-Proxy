@@ -1,13 +1,14 @@
+from collections import defaultdict
+from urllib.parse import urlparse
+import http.client
 import asyncio
 import logging
-import ssl
-import time
 import certifi
-import http.client
-from urllib.parse import urlparse
 import pickle
+import math
+import time
+import ssl
 import os
-from collections import defaultdict
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +21,8 @@ request_frequency = defaultdict(int)
 
 # Maximum size of the cache
 MAX_CACHE_SIZE = 25
+
+save = 0
 
 # Cache file path
 CACHE_FILE = "cache.pkl"
@@ -69,8 +72,7 @@ async def handle_connect(
 
 
 async def handle_http(reader: asyncio.StreamReader, writer, method, url, version):
-    global cache, request_frequency
-
+    global cache, request_frequency, save
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -104,12 +106,14 @@ async def handle_http(reader: asyncio.StreamReader, writer, method, url, version
         # Cache the response
         cache[url] = data
         request_frequency[url] += 1
-        logging.info(len(cache))
+        logging.info(f"{len(cache)} {round((MAX_CACHE_SIZE / 2))}")
         # Check cache size and evict least used items if needed
-        if len(cache) > MAX_CACHE_SIZE:
-            save_cache()
-        if len(cache) > (MAX_CACHE_SIZE / 2):
+        if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
+            logging.info("evict_cache_items")
             evict_cache_items()
+        if (save % 10) == 0:
+            logging.info("saving cache")
+            save_cache()
 
         writer.write(data)
         await writer.drain()
