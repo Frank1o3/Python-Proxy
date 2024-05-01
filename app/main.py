@@ -111,7 +111,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
             logging.info("evict_cache_items")
             evict_cache_items()
-        if (save % 10) == 0:
+        if (save % 10) == math.floor((MAX_CACHE_SIZE / 2)):
             logging.info("saving cache")
             save_cache()
 
