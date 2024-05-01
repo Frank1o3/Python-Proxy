@@ -1,10 +1,9 @@
-import socketserver
-import socket
-import http.client
-from urllib.parse import urlparse
+import asyncio
 import logging
 import ssl
 import certifi
+import http.client
+from urllib.parse import urlparse
 
 # Configure logging
 logging.basicConfig(
@@ -16,110 +15,127 @@ cache = {}
 request_count = 0
 
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    pass
+async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    global request_count, cache
 
+    try:
+        request = await reader.readuntil(b"\r\n\r\n")
 
-class Proxy(socketserver.BaseRequestHandler):
-
-    def handle(self):
-        request_line = self.request.recv(1024).strip()
-        if not request_line:
+        if not request:
             return
-        logging.info(request_line)
-        method, url, version = request_line.split(b" ", 2)
-        if method == b"CONNECT":
-            self.handle_connect(url)
-        else:
-            self.handle_http(method, url, version)
 
-        # Clear cache after every 100 requests
-        global request_count, cache
+        request_line = request.split(b"\r\n")[0]
+        method, url, version = request_line.split(b" ", 2)
+        logging.info(request)
+        if method == b"CONNECT":
+            await handle_connect(reader, writer, url)
+        else:
+            await handle_http(reader, writer, method, url, version)
+
+        request_count += 1
         if request_count % 100 == 0:
             logging.info("Clearing cache")
             cache.clear()
-        request_count += 1
+    except Exception as e:
+        logging.error(f"Error handling request: {e}")
+    finally:
+        writer.close()
 
-    def handle_connect(self, url):
-        host, _, port = url.decode("utf-8").rpartition(":")
-        port = int(port)
-        try:
-            # Create a new socket and establish a connection
-            conn = socket.create_connection((host, port))
 
-            # Create an SSL context for client-side operations
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+async def handle_connect(
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter, url
+):
+    host, _, port = url.decode("utf-8").rpartition(":")
+    port = int(port)
+
+    try:
+        # Establish a connection to the target server
+        target_reader, target_writer = await asyncio.open_connection(host, port)
+
+        # Send a 200 Connection established response to the client
+        writer.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+        await writer.drain()
+
+        # Relay data between the client and the target server
+        await asyncio.gather(
+            relay(reader, target_writer),
+            relay(target_reader, writer),
+        )
+    except Exception as e:
+        logging.error(f"Error handling CONNECT request: {e}")
+    finally:
+        writer.close()
+
+
+async def handle_http(reader: asyncio.StreamReader, writer, method, url, version):
+    global cache
+
+    parsed_url = urlparse(url.decode("utf-8"))
+    host = parsed_url.netloc.split(":")[0]
+    port = (
+        parsed_url.port
+        if parsed_url.port
+        else 443 if parsed_url.scheme == "https" else 80
+    )
+
+    try:
+        if url in cache:
+            logging.info(f"Cache hit for {url.decode('utf-8')}")
+            writer.write(cache[url])
+            await writer.drain()
+            return
+
+        if parsed_url.scheme == "https":
+            context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
+            conn = http.client.HTTPSConnection(host, port, context=context)
+        else:
+            conn = http.client.HTTPConnection(host, port)
 
-            # Wrap the socket with SSL/TLS for client-side operations
-            ssl_conn = context.wrap_socket(conn, server_hostname=host)
+        conn.request(method.decode("utf-8"), parsed_url.path)
+        response = conn.getresponse()
+        data = response.read()
 
-            # Send a 200 Connection established response to the client
-            self.request.sendall(b"HTTP/1.1 200 Connection established\r\n\r\n")
+        cache[url] = data
 
-            # Relay data between the client and the target server
-            self.relay(self.request, ssl_conn)
-        except Exception as e:
-            logging.error(f"Error handling CONNECT request: {e}")
+        writer.write(data)
+        await writer.drain()
+    except Exception as e:
+        logging.error(f"Error handling HTTP request: {e}")
+    finally:
+        writer.close()
 
-    def handle_http(self, method, url, version):
-        global cache
-        # Parse the URL to extract the hostname and port
-        parsed_url = urlparse(url.decode("utf-8"))
-        host = parsed_url.netloc.split(":")[0]  # Extract the hostname
-        port = (
-            parsed_url.port
-            if parsed_url.port
-            else 443 if parsed_url.scheme == "https" else 80
-        )  # Extract the port, default to 443 for HTTPS and 80 for HTTP
 
-        try:
-            # Check if the response is in the cache
-            if url in cache:
-                logging.info(f"Cache hit for {url.decode('utf-8')}")
-                self.request.sendall(cache[url])
-                return
+async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    try:
+        while True:
+            data = await reader.read(4096)
+            if not data:
+                break
+            writer.write(data)
+            await writer.drain()
+    except asyncio.CancelledError:
+        # Handle cancellation gracefully
+        logging.info("Relay task cancelled.")
+    except ConnectionResetError:
+        # Connection reset by peer
+        logging.info("Connection reset by peer.")
+    except Exception as e:
+        logging.error(f"Error relaying data: {e}")
+    finally:
+        writer.close()
 
-            # Use HTTPSConnection for HTTPS requests
-            if parsed_url.scheme == "https":
-                # Create an SSL context for client-side operations
-                context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-                context.load_verify_locations(cafile=certifi.where())
-                conn = http.client.HTTPSConnection(host, port, context=context)
-            else:
-                conn = http.client.HTTPConnection(host, port)
 
-            conn.request(method.decode("utf-8"), parsed_url.path)
-            response = conn.getresponse()
-            data = response.read()
+async def main():
+    server_ip = "10.0.0.31"  # Use your server's IP address
+    port = 8080  # Choose a port for your proxy server
 
-            # Add the response to the cache
-            cache[url] = data
+    server = await asyncio.start_server(handle_client, server_ip, port)
 
-            self.request.sendall(data)
-        except Exception as e:
-            logging.error(f"Error handling HTTP request: {e}")
-
-    def relay(self, source, destination):
-        try:
-            while True:
-                data = source.recv(4096)
-                if not data:
-                    logging.info("Connection closed")
-                    break
-                destination.sendall(data)
-        except Exception as e:
-            logging.error(f"Error relaying data: {e}")
+    async with server:
+        logging.info(f"Serving at port {port} on IP {server_ip}")
+        await server.serve_forever()
 
 
 if __name__ == "__main__":
-    server_ip = "10.0.0.31"  # Use your server's IP address
-    port = 8080  # Choose a port for your proxy server
-    with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
-        logging.info(f"Serving at port {port} on IP {server_ip}")
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            logging.info("Received KeyboardInterrupt. Shutting down server...")
-            httpd.shutdown_request()
-            httpd.server_close()
+    asyncio.run(main())
