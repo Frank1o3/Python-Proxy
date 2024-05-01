@@ -34,6 +34,7 @@ class Proxy(socketserver.BaseRequestHandler):
             self.handle_http(method, url, version)
 
         # Clear cache after every 100 requests
+        global request_count, cache
         if request_count % 100 == 0:
             logging.info("Clearing cache")
             cache.clear()
@@ -55,7 +56,6 @@ class Proxy(socketserver.BaseRequestHandler):
 
             # Send a 200 Connection established response to the client
             self.request.sendall(b"HTTP/1.1 200 Connection established\r\n\r\n")
-            logging.info(f"CONNECT request handled for {host}:{port}")
 
             # Relay data between the client and the target server
             self.relay(self.request, ssl_conn)
@@ -63,6 +63,7 @@ class Proxy(socketserver.BaseRequestHandler):
             logging.error(f"Error handling CONNECT request: {e}")
 
     def handle_http(self, method, url, version):
+        global cache
         # Parse the URL to extract the hostname and port
         parsed_url = urlparse(url.decode("utf-8"))
         host = parsed_url.netloc.split(":")[0]  # Extract the hostname
@@ -81,7 +82,6 @@ class Proxy(socketserver.BaseRequestHandler):
 
             # Use HTTPSConnection for HTTPS requests
             if parsed_url.scheme == "https":
-                logging.info("HTTPS Request was made")
                 # Create an SSL context for client-side operations
                 context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
                 context.load_verify_locations(cafile=certifi.where())
@@ -97,7 +97,6 @@ class Proxy(socketserver.BaseRequestHandler):
             cache[url] = data
 
             self.request.sendall(data)
-            logging.info(f"HTTP request handled for {url.decode('utf-8')}")
         except Exception as e:
             logging.error(f"Error handling HTTP request: {e}")
 
@@ -105,6 +104,7 @@ class Proxy(socketserver.BaseRequestHandler):
         try:
             while True:
                 data = source.recv(4096)
+                logging.log(data)
                 if not data:
                     logging.info("Connection closed")
                     break
@@ -115,7 +115,7 @@ class Proxy(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
     server_ip = "10.0.0.31"  # Use your server's IP address
-    port = 8080  # Choose a port for your proxy server
+    port = 8081  # Choose a port for your proxy server
     with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
         logging.info(f"Serving at port {port} on IP {server_ip}")
         try:
