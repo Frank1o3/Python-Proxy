@@ -35,8 +35,10 @@ class Proxy(socketserver.BaseRequestHandler):
             conn = socketserver.socket.create_connection((host, port))
 
             # Create an SSL context for client-side operations
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            context.load_verify_locations(cafile=certifi.where())
+            context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            context.load_cert_chain(
+                certfile="rootCA.pem", keyfile="rootCA.key"
+            )  # Adjust paths as necessary
 
             # Wrap the socket with SSL/TLS for client-side operations
             ssl_conn = context.wrap_socket(conn, server_hostname=host)
@@ -84,7 +86,7 @@ class Proxy(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
     server_ip = "10.0.0.31"  # Use your server's IP address
-    port = 8080  # Choose a port for your proxy server
+    port = 8081  # Choose a port for your proxy server
     with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
         logging.info(f"Serving at port {port} on IP {server_ip}")
         httpd.serve_forever()
