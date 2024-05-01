@@ -114,9 +114,7 @@ class Proxy(socketserver.BaseRequestHandler):
                         "utf-16", errors="replace"
                     )  # Decode data with error handling
                 except UnicodeDecodeError:
-                    decoded_data = repr(
-                        data
-                    )  # If decoding fails, represent the bytes as a string
+                    decoded_data = ""
                 logging.info(f"Relayed data: {decoded_data}")
         except Exception as e:
             logging.error(f"Error relaying data: {e}")
