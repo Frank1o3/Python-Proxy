@@ -4,8 +4,7 @@ import http.client
 from urllib.parse import urlparse
 import logging
 import ssl
-import certifi  # Ensure you have certifi installed for CA certificates
-import random
+import certifi
 
 # Configure logging
 logging.basicConfig(
