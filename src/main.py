@@ -109,13 +109,6 @@ class Proxy(socketserver.BaseRequestHandler):
                     logging.info("Connection closed")
                     break
                 destination.sendall(data)
-                try:
-                    decoded_data = data.decode(
-                        "utf-16", errors="replace"
-                    )  # Decode data with error handling
-                except UnicodeDecodeError:
-                    decoded_data = ""
-                logging.info(f"Relayed data: {decoded_data}")
         except Exception as e:
             logging.error(f"Error relaying data: {e}")
 
@@ -131,5 +124,3 @@ if __name__ == "__main__":
             logging.info("Received KeyboardInterrupt. Shutting down server...")
             httpd.shutdown_request()
             httpd.server_close()
-
-b"0x05".decode(encoding="utf-16")
