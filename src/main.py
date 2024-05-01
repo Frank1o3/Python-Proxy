@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 import logging
 import ssl
 import certifi  # Ensure you have certifi installed for CA certificates
+import random
 
 # Configure logging
 logging.basicConfig(
@@ -115,7 +116,7 @@ class Proxy(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
     server_ip = "10.0.0.31"  # Use your server's IP address
-    port = 8081  # Choose a port for your proxy server
+    port = random.randint(8000,9000)  # Choose a port for your proxy server
     with ThreadedTCPServer((server_ip, port), Proxy) as httpd:
         logging.info(f"Serving at port {port} on IP {server_ip}")
         try:
