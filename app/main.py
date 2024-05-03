@@ -34,6 +34,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
         if not request:
             return
+        logging.info(request)
         request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
         if method == b"CONNECT":
@@ -191,7 +192,7 @@ async def load_cache():
 async def main():
     await load_cache()
 
-    server_ip = "10.0.0.31"  # Use your server's IP address
+    server_ip = "192.168.161.54"  # Use your server's IP address
     port = 8080  # Choose a port for your proxy server
 
     server = await asyncio.start_server(handle_client, server_ip, port)
