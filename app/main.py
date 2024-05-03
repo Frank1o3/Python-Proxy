@@ -1,6 +1,7 @@
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
+import argparse
 import asyncio
 import logging
 import certifi
@@ -192,8 +193,11 @@ async def load_cache():
 async def main():
     await load_cache()
 
-    server_ip = "192.168.161.54"  # Use your server's IP address
-    port = 8080  # Choose a port for your proxy server
+    server_ip = os.environ.get("SERVER_IP", "192.168.161.54")
+    port = int(os.environ.get("SERVER_PORT", 8080))
+
+    server_ip = server_ip if server_ip else "192.168.161.54"
+    port = port if port else 8080
 
     server = await asyncio.start_server(handle_client, server_ip, port)
 

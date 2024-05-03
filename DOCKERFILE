@@ -1,0 +1,24 @@
+# Use official Python image
+FROM python:3.12.3
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy Proxy.py script
+COPY Proxy.py .
+
+# Expose port
+EXPOSE 8080
+
+# Set environment variables
+ENV SERVER_IP="192.168.161.54"
+ENV SERVER_PORT=8080
+
+# Command to run the proxy server
+CMD ["python", "Proxy.py"]
