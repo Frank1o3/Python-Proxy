@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
+import threading
 import asyncio
 import logging
 import certifi
@@ -247,12 +248,10 @@ async def start_proxy_server():
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
         await server.serve_forever()
 
-
-import threading
-
-
 def run_flask_app():
-    app.run(debug=True, use_reloader=False)
+    site_ip = os.environ.get("SITE_IP", "0.0.0.0")
+    site_port = int(os.environ.get("SITE_PORT", 8080))
+    app.run(host=site_ip,port=site_port,debug=True, use_reloader=False)
 
 
 if __name__ == "__main__":
