@@ -39,19 +39,61 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
 
 4.  **Run the application**:
 
-    - **Directly**: Run the application directly using Python:
+        - **Directly**: To run the application directly using Python, follow these steps:
 
-           ```
+            1. Ensure you have Python 3.12.3 or higher installed on your system.
+            2. Navigate to the project directory in your terminal.
+            3. If you're using a virtual environment (which is recommended), activate it. If you haven't created a virtual environment yet, you can do so by running:
 
-      bash python app/main.py
+               ```
 
-    - **Using Docker**: If you've built the Docker image, you can run the application in a Docker container:
+    bash python -m venv venv
 
-           ```
+               And then activate it with:
 
-      bash docker run -p 8080:8080 proxy-server
+               - On Windows:
 
-           This command runs the `proxy-server` Docker image, mapping port 8080 of the container to port 8080 of the host machine.
+                 ```
+
+    bash .\venv\Scripts\activate
+
+               - On macOS and Linux:
+
+                 ```
+
+    bash source venv/bin/activate
+
+            4. Install the required dependencies by running:
+
+               ```
+
+    bash pip install -r requirements.txt
+
+            5. Start the application by running:
+
+               ```
+
+    bash python app/main.py
+
+          This will start the proxy server application, and it will begin listening for HTTP requests on the specified IP and port.
+
+        - **Using Docker**: To run the application in a Docker container, follow these steps:
+
+            1. Ensure Docker is installed and running on your system.
+            2. Navigate to the project directory in your terminal.
+            3. Build the Docker image (if you haven't already) by running:
+
+               ```
+
+    bash docker build -t proxy-server .
+
+            4. Run the Docker container with the following command:
+
+               ```
+
+    bash docker run -p 8080:8080 proxy-server
+
+          This command maps port 8080 of the container to port 8080 of the host machine, allowing you to access the proxy server application through your web browser or any HTTP client by navigating to `http://localhost:8080` or using the appropriate IP address if you're running the container on a different host.
 
 ## Usage
 
