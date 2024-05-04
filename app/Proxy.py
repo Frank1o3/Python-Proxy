@@ -1,3 +1,4 @@
+from flask import Flask, render_template, request, redirect, url_for
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
@@ -12,16 +13,54 @@ import os
 
 # Cache dictionary to store HTTP responses
 cache = {}
-ip = "localhost"
+app = Flask(__name__)
 request_frequency = defaultdict(int)
 
 # Maximum size of the cache
 MAX_CACHE_SIZE = 25
-
 save = 0
 
 # Cache file path
 CACHE_FILE = "cache.pkl"
+SITES_FILE = "sites.pkl"
+
+
+def load_sites():
+    """Load sites from the file."""
+    if not os.path.exists(SITES_FILE):
+        return []
+    with open(SITES_FILE, "rb") as file:
+        return pickle.load(file)
+
+
+def save_sites(sites):
+    """Save sites to the file."""
+    with open(SITES_FILE, "wb") as file:
+        pickle.dump(sites, file)
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        site = request.form.get("site")
+        if site:
+            sites = load_sites()
+            if site not in sites:
+                sites.append(site)
+                save_sites(sites)
+        return redirect(url_for("index"))
+
+    sites = load_sites()
+    return render_template("index.html", sites=sites)
+
+
+@app.route("/remove/<site>")
+def remove(site):
+    sites = load_sites()
+    if site in sites:
+        sites.remove(site)
+        save_sites(sites)
+    return redirect(url_for("index"))
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -198,7 +237,7 @@ async def main():
     )
 
     server_ip, server_port = get_server_address()
-
+    app.run(host=server_ip, port=(server_port + 1), debug=True)
     server = await asyncio.start_server(handle_client, server_ip, server_port)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")

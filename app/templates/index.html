@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Site List</title>
+</head>
+
+<body>
+    <h1>Add a Site</h1>
+    <form method="POST">
+        <input type="text" name="site" placeholder="Enter site name">
+        <button type="submit">Add</button>
+    </form>
+    <h1>Site List</h1>
+    <ul>
+        {% for site in sites %}
+        <li>
+            {{ site }}
+            <a href="{{ url_for('remove', site=site) }}">Remove</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>
