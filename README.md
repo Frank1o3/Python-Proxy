@@ -1,10 +1,10 @@
 # Proxy Server Application
 
-This project is a Python-based proxy server application designed to handle HTTP requests and responses, potentially for routing or security purposes. It utilizes the `aiohttp` library for asynchronous HTTP requests and the `certifi` package for managing SSL certificates. The application may be containerized using Docker.
+This project is a Python-based proxy server application designed to handle HTTP requests and responses, potentially for routing or security purposes. It utilizes the `http.client` module for making HTTP requests and the `certifi` package for managing SSL certificates. The application may be containerized using Docker, and it uses a virtual environment for Python dependencies.
 
 ## Features
 
-- Asynchronous HTTP request handling using `aiohttp`.
+- Handling HTTP requests and responses.
 - SSL certificate management with `certifi`.
 - Docker containerization for easy deployment.
 - Caching mechanism to store HTTP responses.
@@ -19,7 +19,6 @@ This project is a Python-based proxy server application designed to handle HTTP 
 
 The project requires the following Python packages:
 
-- `aiohttp`
 - `certifi`
 - `netifaces`
 
@@ -36,7 +35,7 @@ These dependencies are listed in the `requirements.txt` file.
 
 bash docker build -t proxy-server .
 
-This command builds a Docker image named `proxy-server` using the `Dockerfile` provided in the project.
+This command builds a Docker image named `proxy-server` using the `Dockerfile` provided in the project. The Docker setup includes creating and using a virtual environment for Python dependencies.
 
 4.  **Run the application**:
 
