@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
@@ -13,22 +13,26 @@ import os
 
 # Cache dictionary to store HTTP responses
 cache = {}
-app = Flask(__name__)
 request_frequency = defaultdict(int)
 
 # Maximum size of the cache
 MAX_CACHE_SIZE = 25
-save = 0
 
 # Cache file path
 CACHE_FILE = "cache.pkl"
 SITES_FILE = "sites.pkl"
 
+# Initialize an empty set for blocked sites
+blocked_sites = list()
+
+# Flask app initialization
+app = Flask(__name__)
+
 
 def load_sites():
     """Load sites from the file."""
     if not os.path.exists(SITES_FILE):
-        return []
+        return set()
     with open(SITES_FILE, "rb") as file:
         return pickle.load(file)
 
@@ -44,22 +48,19 @@ def index():
     if request.method == "POST":
         site = request.form.get("site")
         if site:
-            sites = load_sites()
-            if site not in sites:
-                sites.append(site)
-                save_sites(sites)
+            if site not in blocked_sites:
+                blocked_sites.add(site)
+                save_sites(blocked_sites)
         return redirect(url_for("index"))
 
-    sites = load_sites()
-    return render_template("index.html", sites=sites)
+    return render_template("index.html", sites=blocked_sites)
 
 
 @app.route("/remove/<site>")
 def remove(site):
-    sites = load_sites()
-    if site in sites:
-        sites.remove(site)
-        save_sites(sites)
+    if site in blocked_sites:
+        blocked_sites.remove(site)
+        save_sites(blocked_sites)
     return redirect(url_for("index"))
 
 
@@ -109,7 +110,7 @@ async def handle_connect(
 
 
 async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
-    global cache, request_frequency, save
+    global cache, blocked_sites, request_frequency
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -119,6 +120,15 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
     )
 
     try:
+        # Check if the requested URL is in the list of blocked sites
+        if host in blocked_sites:
+            # Return a custom HTML response indicating that the site is blocked
+            response = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\n\r\n"
+            response += b"<html><body><h1>403 Forbidden</h1><p>This site is blocked.</p></body></html>"
+            writer.write(response)
+            await writer.drain()
+            return
+
         if url in cache:
             logging.info(f"Cache hit for {url.decode('utf-8')}")
             writer.write(cache[url])
@@ -133,9 +143,6 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
                 logging.info("evict_cache_items")
                 evict_cache_items()
-            if (save % MAX_CACHE_SIZE) == 0:
-                logging.info("saving cache")
-                save_cache()
             return
 
         # Perform the HTTP request
@@ -160,9 +167,6 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
             logging.info("evict_cache_items")
             evict_cache_items()
-        if (save % MAX_CACHE_SIZE) == 0:
-            logging.info("saving cache")
-            save_cache()
 
         writer.write(data)
         await writer.drain()
@@ -231,18 +235,38 @@ def get_server_address():
     return server_ip, server_port
 
 
-async def main():
+async def start_proxy_server():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
     server_ip, server_port = get_server_address()
-    app.run(host=server_ip, port=(server_port + 1), debug=True)
+
     server = await asyncio.start_server(handle_client, server_ip, server_port)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
         await server.serve_forever()
 
 
+import threading
+
+
+def run_flask_app():
+    app.run(debug=True, use_reloader=False)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    blocked_sites = load_sites()
+    # Create a new event loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Run Flask app in a separate thread
+    flask_thread = threading.Thread(target=run_flask_app)
+    flask_thread.start()
+
+    # Run proxy server in the main thread
+    try:
+        loop.run_until_complete(start_proxy_server())
+    finally:
+        loop.close()

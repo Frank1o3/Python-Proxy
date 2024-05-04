@@ -1,24 +1,21 @@
 # Use official Python image
 FROM python:3.12.3
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements file
 COPY requirements.txt .
 
-# Install dependencies within a virtual environment
 RUN python -m venv /venv
 RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy Proxy.py script
-COPY app/main.py .
+COPY app/Main.py .
 
-# Expose port
-EXPOSE 8080
+EXPOSE 8080 5000
 
-# Set environment variables
-ENV SERVER_PORT=8080
+ENV PORXY_IP="0.0.0.0"
+ENV SITE_IP="10.0.0.31"
 
-# Command to run the proxy server
+ENV PROXY_PORT=8080
+ENV SITE_PORT=5000
+
 CMD ["/venv/bin/python", "Proxy.py"]
