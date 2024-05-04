@@ -3,19 +3,22 @@ FROM python:3.12.3
 
 WORKDIR /app
 
+# Copy requirements and install dependencies
 COPY requirements.txt .
-
 RUN python -m venv /venv
 RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 
+# Copy the proxy script
 COPY app/Proxy.py .
 
+# Expose ports
 EXPOSE 8080 5000
 
-ENV PORXY_IP="10.0.0.31"
+# Set environment variables
+ENV PROXY_IP="10.0.0.31"
 ENV SITE_IP="10.0.0.31"
-
 ENV PROXY_PORT=8080
 ENV SITE_PORT=5000
 
+# Run the proxy
 CMD ["/venv/bin/python", "Proxy.py"]
