@@ -17,7 +17,6 @@ COPY Proxy.py .
 EXPOSE 8080
 
 # Set environment variables
-ENV SERVER_IP="192.168.161.54"
 ENV SERVER_PORT=8080
 
 # Command to run the proxy server

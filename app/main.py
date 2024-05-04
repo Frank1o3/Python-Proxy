@@ -1,7 +1,7 @@
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
-import argparse
+import netifaces
 import asyncio
 import logging
 import certifi
@@ -11,6 +11,38 @@ import time
 import ssl
 import os
 
+
+def get_interfaces():
+    interfaces = netifaces.interfaces()
+    result = []
+    for interface in interfaces:
+        details = {}
+        details["name"] = interface
+        if "wlp" in interface:
+            details["type"] = "Wireless"
+        elif "eth" in interface:
+            details["type"] = "Ethernet"
+        else:
+            if netifaces.AF_LINK in netifaces.ifaddresses(interface):
+                details["type"] = "Ethernet"
+            elif netifaces.AF_INET in netifaces.ifaddresses(interface):
+                details["type"] = "Wireless"
+            else:
+                details["type"] = "Unknown"
+        if details["type"] != "Unknown":
+            addrs = netifaces.ifaddresses(interface).get(netifaces.AF_INET)
+            if addrs:
+                details["ipv4"] = addrs[0]["addr"]
+            else:
+                details["ipv4"] = "N/A"
+        else:
+            details["ipv4"] = "N/A"
+
+        result.append(details)
+
+    return result
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -18,6 +50,7 @@ logging.basicConfig(
 
 # Cache dictionary to store HTTP responses
 cache = {}
+ip = "localhost"
 request_frequency = defaultdict(int)
 
 # Maximum size of the cache
@@ -191,18 +224,31 @@ async def load_cache():
 
 
 async def main():
+    global ip
     await load_cache()
-
-    server_ip = os.environ.get("SERVER_IP", "192.168.161.54")
+    interfaces = get_interfaces()
+    for interface in interfaces:
+        global ip
+        match interface["type"]:
+            case "Wireless":
+                if "docker" in interface["name"] or "lo" in interface["name"]:
+                    continue
+                if interface["ipv4"] != "N/A":
+                    ip = str(interface["ipv4"])
+            case "Ethernet":
+                if "docker" in interface["name"] or "lo" in interface["name"]:
+                    continue
+                if interface["ipv4"] != "N/A":
+                    ip = str(interface["ipv4"])
     port = int(os.environ.get("SERVER_PORT", 8080))
 
-    server_ip = server_ip if server_ip else "192.168.161.54"
+    ip = ip if ip else "localhost"
     port = port if port else 8080
 
-    server = await asyncio.start_server(handle_client, server_ip, port)
+    server = await asyncio.start_server(handle_client, ip, port)
 
     async with server:
-        logging.info(f"Serving at port {port} on IP {server_ip}")
+        logging.info(f"Serving at port {port} on IP {ip}")
         await server.serve_forever()
 
 
