@@ -130,23 +130,26 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             await writer.drain()
             return
 
-        if url in cache:
-            logging.info(f"Cache hit for {url.decode('utf-8')}")
-            writer.write(cache[url])
-            await writer.drain()
+        # If the host is a local address, forward the request to the local Flask server
+        if host == "10.0.0.50" or host == "localhost":
+            # Connect to the local Flask server
+            local_reader, local_writer = await asyncio.open_connection(
+                "127.0.0.1", int(os.environ.get("SITE_PORT", 8080))
+            )
 
-            # Update request frequency for cached URL
-            request_frequency[url] += 1
+            # Forward the original request to the local server
+            local_writer.write(request.encode())
+            await local_writer.drain()
 
-            logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
+            # Relay data between the client and the local server
+            await asyncio.gather(
+                relay(reader, local_writer),
+                relay(local_reader, writer),
+            )
 
-            # Check cache size and evict least used items if needed
-            if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
-                logging.info("evict_cache_items")
-                evict_cache_items()
             return
 
-        # Perform the HTTP request
+        # Perform the HTTP request to the external server
         if parsed_url.scheme == "https":
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
@@ -248,10 +251,11 @@ async def start_proxy_server():
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
         await server.serve_forever()
 
+
 def run_flask_app():
     site_ip = os.environ.get("SITE_IP", "0.0.0.0")
     site_port = int(os.environ.get("SITE_PORT", 8080))
-    app.run(host=site_ip,port=site_port,debug=True, use_reloader=False)
+    app.run(host=site_ip, port=site_port, debug=True, use_reloader=False)
 
 
 if __name__ == "__main__":
