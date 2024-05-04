@@ -27,7 +27,6 @@ CACHE_FILE = "cache.pkl"
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
         request = await reader.readuntil(b"\r\n\r\n")
-
         if not request:
             return
         logging.info(request)
@@ -37,6 +36,8 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
             await handle_connect(reader, writer, url)
         else:
             await handle_http(reader, writer, method, url, version)
+    except asyncio.IncompleteReadError:
+        logging.error("Error handling request: Incomplete request received")
     except Exception as e:
         logging.error(f"Error handling request: {e}")
     finally:
@@ -62,7 +63,7 @@ async def handle_connect(
             relay(reader, target_writer),
             relay(target_reader, writer),
         )
-    except Exception as e:
+    except OSError as e:
         logging.error(f"Error handling CONNECT request: {e}")
     finally:
         writer.close()
