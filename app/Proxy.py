@@ -234,7 +234,7 @@ async def load_cache():
 
 
 def get_server_address():
-    server_ip = os.environ.get("SERVER_IP", "0.0.0.0")
+    server_ip = os.environ.get("SERVER_IP", "10.0.0.31")
     server_port = int(os.environ.get("SERVER_PORT", 8080))
     return server_ip, server_port
 
@@ -253,7 +253,7 @@ async def start_proxy_server():
 
 
 def run_flask_app():
-    site_ip = os.environ.get("SITE_IP", "0.0.0.0")
+    site_ip = os.environ.get("SITE_IP", "10.0.0.31")
     site_port = int(os.environ.get("SITE_PORT", 8080))
     app.run(host=site_ip, port=site_port, debug=True, use_reloader=False)
 
