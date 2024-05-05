@@ -102,7 +102,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         else 443 if parsed_url.scheme == "https" else 80
     )
     block_settings = readfile(BLOCK_SITE_FILE)
-    for site in blocked_sites:
+    for site in block_settings:
         if site in host:
             serve_blocked_page(writer)
             return
