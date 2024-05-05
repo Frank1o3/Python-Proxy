@@ -12,17 +12,14 @@ import os
 
 
 # Cache dictionary to store HTTP responses
+save = 0
 cache = {}
-ip = "localhost"
 request_frequency = defaultdict(int)
 
-# Maximum size of the cache
-MAX_CACHE_SIZE = 25
-
-save = 0
-
 # Cache file path
+MAX_CACHE_SIZE = 25
 CACHE_FILE = "cache.pkl"
+BLOCK_SITES = ["porrhub","xnxx"]
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
