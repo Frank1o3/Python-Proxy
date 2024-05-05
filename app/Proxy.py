@@ -19,7 +19,7 @@ request_frequency = defaultdict(int)
 # Cache file path
 MAX_CACHE_SIZE = 25
 CACHE_FILE = "cache.pkl"
-BLOCK_SITE_FILE = "BlockedSites.txt"
+BLOCK_SITE_FILE = "app/BlockedSites.txt"
 
 
 def readfile(path: str):
@@ -34,7 +34,6 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         request = await reader.readuntil(b"\r\n\r\n")
         if not request:
             return
-        logging.info(request)
         request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
         if method == b"CONNECT":
@@ -103,13 +102,10 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         else 443 if parsed_url.scheme == "https" else 80
     )
     block_settings = readfile(BLOCK_SITE_FILE)
-    block_enabled = block_settings[0].strip().lower() == "true"
-    blocked_sites = block_settings[1:]
-
-    if block_enabled and any(site in host for site in blocked_sites):
-        # If blocking is enabled and the requested site is in the block list, serve the custom HTML page
-        await serve_blocked_page(writer)
-        return
+    for site in blocked_sites:
+        if site in host:
+            serve_blocked_page(writer)
+            return
     try:
         if url in cache:
             logging.info(f"Cache hit for {url.decode('utf-8')}")
