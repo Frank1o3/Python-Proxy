@@ -68,7 +68,7 @@ async def handle_connect(
 
 
 async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
-    global cache, request_frequency, save
+    global cache, request_frequency, save, BLOCK_SITES
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -76,7 +76,8 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-
+    if BLOCK_SITES in host:
+        pass
     try:
         if url in cache:
             logging.info(f"Cache hit for {url.decode('utf-8')}")
