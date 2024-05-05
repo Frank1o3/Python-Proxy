@@ -19,7 +19,14 @@ request_frequency = defaultdict(int)
 # Cache file path
 MAX_CACHE_SIZE = 25
 CACHE_FILE = "cache.pkl"
-BLOCK_SITES = ["porrhub", "xnxx"]
+BLOCK_SITE_FILE = "BlockedSites.txt"
+
+
+def readfile(path: str):
+    with open(path, "r") as file:
+        data = file.read().split("\n")
+        file.close()
+    return data
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -87,7 +94,7 @@ async def serve_blocked_page(writer: asyncio.StreamWriter):
 
 
 async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
-    global cache, request_frequency, save, BLOCK_SITES
+    global cache, request_frequency, save, BLOCK_SITE_FILE
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -95,8 +102,12 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    if any(site in host for site in BLOCK_SITES):
-        # If the requested site is in the block list, serve the custom HTML page
+    block_settings = readfile(BLOCK_SITE_FILE)
+    block_enabled = block_settings[0].strip().lower() == "true"
+    blocked_sites = block_settings[1:]
+
+    if block_enabled and any(site in host for site in blocked_sites):
+        # If blocking is enabled and the requested site is in the block list, serve the custom HTML page
         await serve_blocked_page(writer)
         return
     try:
