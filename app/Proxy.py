@@ -19,7 +19,7 @@ request_frequency = defaultdict(int)
 # Cache file path
 MAX_CACHE_SIZE = 25
 CACHE_FILE = "cache.pkl"
-BLOCK_SITES = ["porrhub","xnxx"]
+BLOCK_SITES = ["porrhub", "xnxx"]
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
