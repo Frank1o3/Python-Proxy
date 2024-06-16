@@ -18,7 +18,7 @@ cache = {}
 request_frequency = defaultdict(int)
 
 # Cache file path
-CONFIG: str = "app/Config.json"
+CONFIG: str = "Config.json"
 LOGGINGLEVEL = 1
 
 if os.path.exists(CONFIG):
