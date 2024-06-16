@@ -83,25 +83,6 @@ async def handle_connect(
         writer.close()
 
 
-async def serve_blocked_page(writer: asyncio.StreamWriter):
-    response = (
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html; charset=utf-8\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "<!DOCTYPE html>\r\n"
-        "<html>\r\n"
-        "<head><title>Access Blocked</title></head>\r\n"
-        "<body>\r\n"
-        "<h1>Access to this website is blocked.</h1>\r\n"
-        "</body>\r\n"
-        "</html>\r\n"
-    )
-    writer.write(response.encode())
-    await writer.drain()
-    writer.close()
-
-
 async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
     global cache, request_frequency, save, BLOCK_SITE_FILE
     parsed_url = urlparse(url.decode("utf-8"))
