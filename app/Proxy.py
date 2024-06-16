@@ -19,25 +19,7 @@ request_frequency = defaultdict(int)
 
 # Cache file path
 CONFIG: str = "app/Config.json"
-
-
-async def ask():
-    logging.info("-" * 25)
-    logging.info("Logging Levels 1 - 4")
-    logging.info("Level 1: Logs the http request host and its port.")
-    logging.info("Level 2: Logs the url method and version of a request.")
-    logging.info("Level 3: Logs the full request.")
-    answer = input("Please provide a number: ")
-    if answer.isdigit():
-        return int(answer)
-    else:
-        match = re.search(r"\d+", answer)
-        if match:
-            number = int(match.group())
-            return number
-        else:
-            return 1
-
+LOGGINGLEVEL = 1
 
 if os.path.exists(CONFIG):
     with open(CONFIG, "r") as file:
@@ -46,7 +28,6 @@ if os.path.exists(CONFIG):
             MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
             CACHE_FILE: str = data["CACHE_FILE"]
             BLOCKED_SITES: list = data["BlockSites"]
-            LOGGINGLEVEL = 3
         except JSONDecodeError as e:
             raise e
         finally:
@@ -64,7 +45,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         method, url, version = request_line.split(b" ", 2)
         if LOGGINGLEVEL == 3:
             logging.info(request)
-        if LOGGINGLEVEL >= 2:
+        elif LOGGINGLEVEL >= 2:
             logging.info(f"Url: {url} Method: {method} Version: {version}")
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
@@ -130,13 +111,13 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    if LOGGINGLEVEL >= 1:
-        logging.info(f"Host: {host} Port: {port}")
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
             writer.close()
             return
+    if LOGGINGLEVEL >= 1:
+        logging.info(f"Host: {host} Port: {port}")
     try:
         if url in cache:
             logging.info(f"Cache hit for {url.decode('utf-8')}")
@@ -228,9 +209,40 @@ def get_server_address():
     return server_ip, server_port
 
 
+def ask():
+    logging.info("-" * 55)
+    logging.info("Logging Levels 1 - 3")
+    logging.info("Level 1: Logs the http request host and its port.")
+    logging.info("Level 2: Logs the url method and version of a request.")
+    logging.info("Level 3: Logs the full request.")
+    answer = input("Please provide a number: ")
+    logging.info("-" * 55)
+    if answer.isdigit():
+        if int(answer) > 3:
+            return 3
+        elif int(answer) == 0:
+            return 1
+        else:
+            return int(answer)
+    else:
+        match = re.search(r"\d+", answer)
+        if match:
+            number = int(match.group())
+            if number > 3:
+                return 3
+            elif number == 0:
+                return 1
+            else:
+                return number
+        else:
+            return 1
+
+
 async def main():
+    global LOGGINGLEVEL
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
+    LOGGINGLEVEL = ask()
     server = await asyncio.start_server(handle_client, server_ip, server_port)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
