@@ -19,7 +19,7 @@ request_frequency = defaultdict(int)
 # Cache file path
 MAX_CACHE_SIZE = 25
 CACHE_FILE = "cache.pkl"
-BLOCK_SITE_FILE = "app/BlockedSites.txt"
+BLOCK_SITE_FILE = "BlockedSites.txt"
 
 
 def readfile(path: str):
@@ -104,7 +104,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
     block_settings = readfile(BLOCK_SITE_FILE)
     for site in block_settings:
         if site in host:
-            serve_blocked_page(writer)
+            await serve_blocked_page(writer)
             return
     try:
         if url in cache:
