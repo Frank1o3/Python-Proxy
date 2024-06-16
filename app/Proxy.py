@@ -26,6 +26,7 @@ if os.path.exists("Config.json"):
             MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
             CACHE_FILE: str = data["CACHE_FILE"]
             BLOCKED_SITES: list = data["BlockSites"]
+            LOGGINGLEVEL: int = data["LoggingLevel"]
         except JSONDecodeError as e:
             raise e
         finally:
@@ -33,11 +34,14 @@ if os.path.exists("Config.json"):
 else:
     raise Exception("Config.json file does not exists")
 
+
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
         request = await reader.readuntil(b"\r\n\r\n")
         if not request:
             return
+        if LOGGINGLEVEL == 3:
+            logging.info(request)
         request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
         if method == b"CONNECT":
@@ -110,6 +114,8 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
+    if LOGGINGLEVEL == 2:
+        logging.info(f"Host: {host} Port: {port}")
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")

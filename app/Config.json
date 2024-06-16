@@ -7,5 +7,6 @@
     ],
     "BlockIP": [],
     "MAX_CACHE_SIZE": 25,
-    "CACHE_FILE": "cache.pkl"
+    "CACHE_FILE": "cache.pkl",
+    "LoggingLevel": 2
 }
