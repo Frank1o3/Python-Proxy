@@ -80,7 +80,6 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
                 This command runs the container in detached mode
                 ```
 
-      ```
       docker logs -f python-proxy
               This command will lets you see the docker image logs if you dont want to see the logs press ctrl + c to close or exit
               ```
