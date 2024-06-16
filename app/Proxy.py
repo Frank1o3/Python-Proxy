@@ -215,7 +215,7 @@ def ask():
     logging.info("Level 1: Logs the http request host and its port.")
     logging.info("Level 2: Logs the url method and version of a request.")
     logging.info("Level 3: Logs the full request.")
-    answer = input("Please provide a number: ")
+    answer = input("INFO - Please provide a number: ")
     logging.info("-" * 55)
     if answer.isdigit():
         if int(answer) > 3:
