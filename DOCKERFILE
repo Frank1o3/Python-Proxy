@@ -16,7 +16,7 @@ COPY app/Config.json .
 EXPOSE 8080
 
 # Set environment variables
-ENV PROXY_IP="0.0.0.0"
+ENV PROXY_IP="10.0.0.31"
 ENV PROXY_PORT=8080
 
 # Run the proxy

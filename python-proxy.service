@@ -1,0 +1,13 @@
+[Unit]
+Description=Python Proxy Docker Container
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStartPre=/path/to/cleanup.sh
+ExecStart=/usr/bin/docker run -d --name python-proxy -p 8080:8080 --restart=unless-stopped your-python-proxy-image-name
+ExecStop=/usr/bin/docker stop python-proxy
+
+[Install]
+WantedBy=multi-user.target
