@@ -20,7 +20,6 @@ This project is a Python-based proxy server application designed to handle HTTP 
 The project requires the following Python packages:
 
 - `certifi`
-- `netifaces`
 
 These dependencies are listed in the `requirements.txt` file.
 
