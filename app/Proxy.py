@@ -114,7 +114,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    if LOGGINGLEVEL == 2:
+    if LOGGINGLEVEL > 1:
         logging.info(f"Host: {host} Port: {port}")
     for site in BLOCKED_SITES:
         if site in host:
