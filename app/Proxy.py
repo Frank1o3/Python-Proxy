@@ -53,7 +53,13 @@ async def handle_connect(
 ):
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
-
+    blocked_sites = readfile(BLOCK_SITE_FILE)
+    for site in blocked_sites:
+        if site in host:
+            logging.info(f"Connection to {site} blocked.")
+            # Close the writer without sending a response
+            writer.close()
+            return
     try:
         # Establish a connection to the target server
         target_reader, target_writer = await asyncio.open_connection(host, port)
@@ -101,10 +107,12 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    block_settings = readfile(BLOCK_SITE_FILE)
-    for site in block_settings:
+    blocked_sites = readfile(BLOCK_SITE_FILE)
+    for site in blocked_sites:
         if site in host:
-            await serve_blocked_page(writer)
+            logging.info(f"Connection to {site} blocked.")
+            # Close the writer without sending a response
+            writer.close()
             return
     try:
         if url in cache:

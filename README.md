@@ -67,18 +67,22 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
 
       ````
 
-    - **Using Docker**: To run the application in a Docker container, follow these steps: 1. Ensure Docker is installed and running on your system. 2. Navigate to the project directory in your terminal. 3. Build the Docker image (if you haven't already) by running:
+      - **Using Docker**: To run the application in a Docker container, follow these steps: 1. Ensure Docker is installed and running on your system. 2. Navigate to the project directory in your terminal. 3. Build the Docker image (if you haven't already) by running:
 
       ````
-      bash docker build -t proxy-server .
+      bash docker build -t python-proxy -f /you/docker/file/full/path .
 
-           4. Run the Docker container with the following command:
+                Builds the docker imange, replace this /you/docker/file/full/path with you dockerfile full path pls :D
               ```
 
-      bash docker run -d --restart unless-stopped -p 8081:8080 -e SERVER_PORT=8080 --name my_proxy_server proxy-server
+      bash docker run -d --restart=unless-stopped -p 8080:8080 --name python-proxy python-proxy
 
-              This command runs the container in detached mode, maps port 8081 of the host to port 8080 inside the container, sets the container name to `my_proxy_server`, and ensures the container starts automatically on system startup unless it is explicitly stopped.
+                This command runs the container in detached mode
       ````
+
+      docker logs -f python-proxy
+                This command will lets you see the docker image logs if you dont want to see the logs press ctrl + c to close or exit
+      ```
 
 ## Usage
 
