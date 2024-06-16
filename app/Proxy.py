@@ -1,3 +1,4 @@
+from json import load, JSONDecodeError
 from collections import defaultdict
 from urllib.parse import urlparse
 import http.client
@@ -17,17 +18,20 @@ cache = {}
 request_frequency = defaultdict(int)
 
 # Cache file path
-MAX_CACHE_SIZE = 25
-CACHE_FILE = "cache.pkl"
-BLOCK_SITE_FILE = "BlockedSites.txt"
 
-
-def readfile(path: str):
-    with open(path, "r") as file:
-        data = file.read().split("\n")
-        file.close()
-    return data
-
+if os.path.exists("Config.json"):
+    with open("Config.json", "r") as file:
+        try:
+            data = load(file)
+            MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
+            CACHE_FILE: str = data["CACHE_FILE"]
+            BLOCKED_SITES: list = data["BlockSites"]
+        except JSONDecodeError as e:
+            raise e
+        finally:
+            file.close()
+else:
+    raise Exception("Config.json file does not exists")
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
@@ -53,8 +57,7 @@ async def handle_connect(
 ):
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
-    blocked_sites = readfile(BLOCK_SITE_FILE)
-    for site in blocked_sites:
+    for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
             # Close the writer without sending a response
@@ -107,8 +110,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    blocked_sites = readfile(BLOCK_SITE_FILE)
-    for site in blocked_sites:
+    for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
             # Close the writer without sending a response

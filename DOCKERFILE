@@ -10,7 +10,7 @@ RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Copy the proxy script
 COPY app/Proxy.py .
-COPY app/BlockedSites.txt .
+COPY app/Config.json .
 
 # Expose ports
 EXPOSE 8080
