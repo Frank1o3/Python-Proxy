@@ -9,8 +9,8 @@ import pickle
 import math
 import time
 import ssl
+import re
 import os
-
 
 # Cache dictionary to store HTTP responses
 save = 0
@@ -18,21 +18,41 @@ cache = {}
 request_frequency = defaultdict(int)
 
 # Cache file path
+CONFIG: str = "app/Config.json"
 
-if os.path.exists("Config.json"):
-    with open("Config.json", "r") as file:
+
+async def ask():
+    logging.info("-" * 25)
+    logging.info("Logging Levels 1 - 4")
+    logging.info("Level 1: Logs the http request host and its port.")
+    logging.info("Level 2: Logs the url method and version of a request.")
+    logging.info("Level 3: Logs the full request.")
+    answer = input("Please provide a number: ")
+    if answer.isdigit():
+        return int(answer)
+    else:
+        match = re.search(r"\d+", answer)
+        if match:
+            number = int(match.group())
+            return number
+        else:
+            return 1
+
+
+if os.path.exists(CONFIG):
+    with open(CONFIG, "r") as file:
         try:
             data = load(file)
             MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
             CACHE_FILE: str = data["CACHE_FILE"]
             BLOCKED_SITES: list = data["BlockSites"]
-            LOGGINGLEVEL: int = data["LoggingLevel"]
+            LOGGINGLEVEL = 3
         except JSONDecodeError as e:
             raise e
         finally:
             file.close()
 else:
-    raise Exception("Config.json file does not exists")
+    raise FileNotFoundError(f"{CONFIG} file does not exist")
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -40,10 +60,12 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         request = await reader.readuntil(b"\r\n\r\n")
         if not request:
             return
-        if LOGGINGLEVEL == 3:
-            logging.info(request)
         request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
+        if LOGGINGLEVEL == 3:
+            logging.info(request)
+        if LOGGINGLEVEL >= 2:
+            logging.info(f"Url: {url} Method: {method} Version: {version}")
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
         else:
@@ -64,18 +86,12 @@ async def handle_connect(
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
-            # Close the writer without sending a response
             writer.close()
             return
     try:
-        # Establish a connection to the target server
         target_reader, target_writer = await asyncio.open_connection(host, port)
-
-        # Send a 200 Connection established response to the client
         writer.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
         await writer.drain()
-
-        # Relay data between the client and the target server
         await asyncio.gather(
             relay(reader, target_writer),
             relay(target_reader, writer),
@@ -114,12 +130,11 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    if LOGGINGLEVEL > 1:
+    if LOGGINGLEVEL >= 1:
         logging.info(f"Host: {host} Port: {port}")
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
-            # Close the writer without sending a response
             writer.close()
             return
     try:
@@ -127,13 +142,8 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             logging.info(f"Cache hit for {url.decode('utf-8')}")
             writer.write(cache[url])
             await writer.drain()
-
-            # Update request frequency for cached URL
             request_frequency[url] += 1
-
             logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
-
-            # Check cache size and evict least used items if needed
             if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
                 logging.info("evict_cache_items")
                 evict_cache_items()
@@ -141,33 +151,24 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
                 logging.info("saving cache")
                 save_cache()
             return
-
-        # Perform the HTTP request
         if parsed_url.scheme == "https":
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
             conn = http.client.HTTPSConnection(host, port, context=context)
         else:
             conn = http.client.HTTPConnection(host, port)
-
         conn.request(method.decode("utf-8"), parsed_url.path)
         response = conn.getresponse()
         data = response.read()
-
-        # Cache the response
         cache[url] = data
         request_frequency[url] += 1
-
         logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
-
-        # Check cache size and evict least used items if needed
         if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
             logging.info("evict_cache_items")
             evict_cache_items()
         if (save % MAX_CACHE_SIZE) == 0:
             logging.info("saving cache")
             save_cache()
-
         writer.write(data)
         await writer.drain()
     except Exception as e:
@@ -196,8 +197,6 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 def save_cache():
     global cache
-
-    # Save cache to file
     if os.path.exists(CACHE_FILE):
         os.remove(CACHE_FILE)
     time.sleep(0.5)
@@ -207,11 +206,7 @@ def save_cache():
 
 def evict_cache_items():
     global cache, request_frequency
-
-    # Sort cache items by request frequency in descending order
     sorted_items = sorted(request_frequency.items(), key=lambda x: x[1], reverse=True)
-
-    # Remove least used items until cache size is within limits
     while len(cache) > MAX_CACHE_SIZE:
         url, _ = sorted_items.pop()
         logging.info(f"Url: {url} was used: {request_frequency[url]}")
@@ -222,8 +217,6 @@ def evict_cache_items():
 
 async def load_cache():
     global cache
-
-    # Load cache from file if it exists
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE, "rb") as file:
             cache = pickle.load(file)
@@ -236,12 +229,8 @@ def get_server_address():
 
 
 async def main():
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
-
     server = await asyncio.start_server(handle_client, server_ip, server_port)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
@@ -249,5 +238,9 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-    print("Hi!! :D")
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logging.info("Server shutdown requested by user.")
+        # Add any cleanup code here if necessary
+        print("Server stopped.")
