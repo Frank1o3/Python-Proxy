@@ -7,7 +7,7 @@ After=docker.service
 Restart=always
 ExecStartPre=cleanup.sh
 ExecStart=/usr/bin/docker run -d --name python-proxy -p 8080:8080 --restart=unless-stopped python-proxy
-ExecStop=/usr/bin/docker stop python-proxy
+ExecStop=/usr/bin/docker stop -t 2 python-proxy
 
 [Install]
 WantedBy=multi-user.target

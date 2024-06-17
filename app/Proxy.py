@@ -6,9 +6,11 @@ import asyncio
 import logging
 import certifi
 import pickle
+import signal
 import math
 import time
 import ssl
+import sys
 import re
 import os
 
@@ -190,6 +192,12 @@ def get_server_address():
     return server_ip, server_port
 
 
+def signal_handler(sig, frame):
+    print("SIGINT received, stopping the proxy...")
+    # Perform cleanup tasks here if needed
+    sys.exit(0)
+
+
 def ask():
     logging.info("-" * 55)
     logging.info("Logging Levels 1 - 3")
@@ -225,6 +233,7 @@ async def main():
     server_ip, server_port = get_server_address()
     LOGGINGLEVEL = ask()
     server = await asyncio.start_server(handle_client, server_ip, server_port)
+    signal.signal(signal.SIGINT, signal_handler)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
         await server.serve_forever()
