@@ -7,7 +7,7 @@ urls=(
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/requirements.txt"
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/Proxy.py"
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/cleanup.sh"
-    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/Proxy.service"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/proxy.service"
 )
 
 download() {
@@ -40,5 +40,5 @@ sudo docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
 
 chmod +x cleanup.sh
 
-sudo mv "$(pwd)/Proxy.service" "/etc/systemd/system/"
+sudo mv "$(pwd)/proxy.service" "/etc/systemd/system/"
 sudo mv "$(pwd)/cleanup.sh" "/etc/systemd/system/"
