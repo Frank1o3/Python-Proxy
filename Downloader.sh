@@ -39,3 +39,6 @@ sleep 1
 sudo docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
 
 chmod +x cleanup.sh
+
+sudo mv "$(pwd)/python-proxy.service" "/etc/systemd/system/"
+sudo mv "$(pwd)/cleanup.sh" "/etc/systemd/system/"
