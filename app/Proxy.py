@@ -19,7 +19,7 @@ request_frequency = defaultdict(int)
 
 # Cache file path
 CONFIG: str = "app/Config.json"
-LOGGINGLEVEL = 1
+LOGGINGLEVEL = 3
 
 if not os.path.exists(CONFIG):
     CONFIG = CONFIG.replace("app/", "")
@@ -211,7 +211,7 @@ async def main():
         level=logging.INFO, format="%(levelname)s - %(message)s"
     )
     server_ip, server_port = get_server_address()
-    LOGGINGLEVEL = 2
+    LOGGINGLEVEL = 3
     log()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
