@@ -9,7 +9,6 @@ import pickle
 import math
 import time
 import ssl
-import re
 import os
 
 # Cache dictionary to store HTTP responses
