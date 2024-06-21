@@ -6,11 +6,9 @@ import asyncio
 import logging
 import certifi
 import pickle
-import signal
 import math
 import time
 import ssl
-import sys
 import re
 import os
 
@@ -20,22 +18,25 @@ cache = {}
 request_frequency = defaultdict(int)
 
 # Cache file path
-CONFIG: str = "Config.json"
+CONFIG: str = "app/Config.json"
 LOGGINGLEVEL = 1
 
-if os.path.exists(CONFIG):
-    with open(CONFIG, "r") as file:
-        try:
-            data = load(file)
-            MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
-            CACHE_FILE: str = data["CACHE_FILE"]
-            BLOCKED_SITES: list = data["BlockSites"]
-        except JSONDecodeError as e:
-            raise e
-        finally:
-            file.close()
-else:
-    raise FileNotFoundError(f"{CONFIG} file does not exist")
+if not os.path.exists(CONFIG):
+    CONFIG = CONFIG.replace("app/", "")
+
+if not os.path.exists(CONFIG):
+    raise FileExistsError(f"{CONFIG} file does not exists")
+
+with open(CONFIG, "r") as file:
+    try:
+        data = load(file)
+        MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
+        CACHE_FILE: str = data["CACHE_FILE"]
+        BLOCKED_SITES: list = data["BlockSites"]
+    except JSONDecodeError as e:
+        raise e
+    finally:
+        file.close()
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -192,48 +193,30 @@ def get_server_address():
     return server_ip, server_port
 
 
-def signal_handler(sig, frame):
-    print("SIGINT received, stopping the proxy...")
-    # Perform cleanup tasks here if needed
-    sys.exit(0)
-
-
-def ask():
+def log():
+    print("")
     logging.info("-" * 55)
     logging.info("Logging Levels 1 - 3")
     logging.info("Level 1: Logs the http request host and its port.")
     logging.info("Level 2: Logs the url method and version of a request.")
     logging.info("Level 3: Logs the full request.")
-    answer = input("INFO - Please provide a number: ")
+    logging.info("Logging Level set to {}".format(LOGGINGLEVEL))
     logging.info("-" * 55)
-    if answer.isdigit():
-        if int(answer) > 3:
-            return 3
-        elif int(answer) == 0:
-            return 1
-        else:
-            return int(answer)
-    else:
-        match = re.search(r"\d+", answer)
-        if match:
-            number = int(match.group())
-            if number > 3:
-                return 3
-            elif number == 0:
-                return 1
-            else:
-                return number
-        else:
-            return 1
+    print("")
 
 
 async def main():
     global LOGGINGLEVEL
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s - %(message)s"
+    )
     server_ip, server_port = get_server_address()
-    LOGGINGLEVEL = ask()
+    LOGGINGLEVEL = 2
+    log()
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     server = await asyncio.start_server(handle_client, server_ip, server_port)
-    signal.signal(signal.SIGINT, signal_handler)
     async with server:
         logging.info(f"Serving at port {server_port} on IP {server_ip}")
         await server.serve_forever()
