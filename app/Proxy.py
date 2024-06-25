@@ -1,11 +1,13 @@
 from json import load, JSONDecodeError
 from collections import defaultdict
 from urllib.parse import urlparse
+from importlib import reload
 import http.client
 import asyncio
 import logging
 import certifi
 import pickle
+import logger
 import math
 import time
 import ssl
@@ -47,7 +49,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         method, url, version = request_line.split(b" ", 2)
         if LOGGINGLEVEL == 3:
             logging.info(request)
-        elif LOGGINGLEVEL >= 2:
+        elif LOGGINGLEVEL >= 2 and LOGGINGLEVEL < 3:
             logging.info(f"Url: {url} Method: {method} Version: {version}")
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
@@ -99,7 +101,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             logging.info(f"Connection to {site} blocked.")
             writer.close()
             return
-    if LOGGINGLEVEL >= 1:
+    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
         logging.info(f"Host: {host} Port: {port}")
     try:
         if url in cache:
@@ -147,6 +149,11 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             data = await reader.read(4096)
             if not data:
                 break
+            try:
+                reload(logger)
+                logger.log(logging,data)
+            except Exception as e:
+                logging.error(e)
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
