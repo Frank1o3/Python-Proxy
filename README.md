@@ -23,6 +23,9 @@ The project requires the following Python packages:
 
 These dependencies are listed in the `requirements.txt` file.
 
+## Install and use the Proxy
+To to this link `https://github.com/Frank1o3/Python-Proxy/blob/main/INSTALL.md`
+
 ## Usage
 
 Once the application is running, it will start listening for HTTP requests on the specified IP and port. The application logs information about incoming requests and responses, as well as details about the network interfaces it detects.
