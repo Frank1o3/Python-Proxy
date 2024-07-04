@@ -3,6 +3,7 @@ from collections import defaultdict
 from urllib.parse import urlparse
 import netifaces as ni
 import http.client
+import CustomSite
 import asyncio
 import logging
 import certifi
@@ -38,7 +39,8 @@ with open(CONFIG, "r") as file:
         raise e
     finally:
         file.close()
-
+        
+CustomSite.run()
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
@@ -71,13 +73,19 @@ async def handle_connect(
     for domain in CUSTOMDOMAINS:
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
+            if domain["to"] == "0.0.0.0":
+                localIP = get_ip_addresses()[0]["addr"]
+            else:
+                localIP = None
             host = "".join(
                 [
-                    domain["to"],
+                    domain["to"] if domain["to"] != "0.0.0.0" else localIP,
                     args,
                 ]
             )
             port = domain["port"]
+            break
+
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
@@ -114,13 +122,18 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
     for domain in CUSTOMDOMAINS:
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
+            if domain["to"] == "0.0.0.0":
+                localIP = get_ip_addresses()[0]["addr"]
+            else:
+                localIP = None
             host = "".join(
                 [
-                    domain["to"],
+                    domain["to"] if domain["to"] != "0.0.0.0" else localIP,
                     args,
                 ]
             )
             port = domain["port"]
+            break
 
     for site in BLOCKED_SITES:
         if site in host:
