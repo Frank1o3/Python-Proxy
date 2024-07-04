@@ -189,7 +189,7 @@ async def load_cache():
 
 
 def get_server_address():
-    server_ip = os.environ.get("PROXY_IP", "10.0.0.31")
+    server_ip = os.environ.get("PROXY_IP", "0.0.0.0")
     server_port = int(os.environ.get("PROXY_PORT", 8080))
     return server_ip, server_port
 
