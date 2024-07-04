@@ -1,13 +1,12 @@
 from json import load, JSONDecodeError
 from collections import defaultdict
 from urllib.parse import urlparse
-from importlib import reload
+import netifaces as ni
 import http.client
 import asyncio
 import logging
 import certifi
 import pickle
-import logger
 import math
 import time
 import ssl
@@ -161,6 +160,19 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         writer.close()
 
 
+def get_ip_addresses():
+    interfaces = ni.interfaces()
+    non_loopback_interfaces = [
+        interface for interface in interfaces if not interface.startswith("lo")
+    ]
+    ip_addresses = []
+    for interface in non_loopback_interfaces:
+        addrs = ni.ifaddresses(interface)
+        ipv4_addrs = addrs.get(ni.AF_INET, [])
+        ip_addresses.extend(ipv4_addrs)
+    return ip_addresses
+
+
 def save_cache():
     global cache
     if os.path.exists(CACHE_FILE):
@@ -189,8 +201,10 @@ async def load_cache():
 
 
 def get_server_address():
-    server_ip = os.environ.get("PROXY_IP", "0.0.0.0")
+    server_ip = os.environ.get("PROXY_IP")
     server_port = int(os.environ.get("PROXY_PORT", 8080))
+    if server_ip == None or server_ip == "0.0.0.0":
+        server_ip = get_ip_addresses()[0]["addr"]
     return server_ip, server_port
 
 
