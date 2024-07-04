@@ -5,7 +5,8 @@ After=docker.service
 
 [Service]
 Restart=always
-ExecStartPre=/path/to/cleanup.sh
+WorkingDirectory=/etc/systemd/system/
+ExecStartPre=/bin/bash -c "$(pwd)/cleanup.sh"
 ExecStart=/usr/bin/docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy
 ExecStop=/usr/bin/docker stop -t 2 python-proxy
 
