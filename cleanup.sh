@@ -8,8 +8,8 @@ if /usr/bin/docker inspect -f '{{.State.Running}}' python-proxy >/dev/null 2>&1;
 fi
 
 # Check if the container exists
-if /usr/bin/docker inspect -f '{{.State.Running}}' python-proxy >/dev/null 2>&1; then
+if /usr/bin/docker ps -a --format '{{.Names}}' | grep -Eq "^python-proxy$"; then
     # If exists, remove the container
-    echo "deleting container"
+    echo "Deleting container"
     /usr/bin/docker rm python-proxy >/dev/null
 fi
