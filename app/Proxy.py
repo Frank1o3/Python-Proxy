@@ -32,7 +32,8 @@ with open(CONFIG, "r") as file:
         data = load(file)
         MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
         CACHE_FILE: str = data["CACHE_FILE"]
-        BLOCKED_SITES: list = data["BlockSites"]
+        BLOCKED_SITES: list[str] = data["BlockSites"]
+        CUSTOMDOMAINS: list[dict[str, str, int]] = data["CustomDomains"]
     except JSONDecodeError as e:
         raise e
     finally:
@@ -67,6 +68,16 @@ async def handle_connect(
 ):
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
+    for domain in CUSTOMDOMAINS:
+        if host.startswith(domain["name"]):
+            args = host.removeprefix(domain["name"])
+            host = "".join(
+                [
+                    domain["to"],
+                    args,
+                ]
+            )
+            port = domain["port"]
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
@@ -97,6 +108,20 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
+    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
+        logging.info(f"Host: {host} Port: {port}")
+
+    for domain in CUSTOMDOMAINS:
+        if host.startswith(domain["name"]):
+            args = host.removeprefix(domain["name"])
+            host = "".join(
+                [
+                    domain["to"],
+                    args,
+                ]
+            )
+            port = domain["port"]
+
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
@@ -104,6 +129,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             await writer.drain()
             writer.close()
             return
+
     if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
         logging.info(f"Host: {host} Port: {port}")
     try:
@@ -136,7 +162,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             logging.info("evict_cache_items")
             evict_cache_items()
         if (save % MAX_CACHE_SIZE) == 0:
-            logging.info("saving cache")
+            logging.info("saving cache ")
             save_cache()
         writer.write(data)
         await writer.drain()
@@ -154,6 +180,7 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 break
             writer.write(data)
             await writer.drain()
+            logging.debug(f"Relayed data: {data}")  # Added debug logging
     except asyncio.CancelledError:
         logging.info("Relay task cancelled.")
     except ConnectionResetError:
