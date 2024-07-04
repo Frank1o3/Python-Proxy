@@ -70,6 +70,8 @@ async def handle_connect(
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
+            writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
+            await writer.drain()
             writer.close()
             return
     try:
@@ -98,6 +100,8 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
+            writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
+            await writer.drain()
             writer.close()
             return
     if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
@@ -222,9 +226,7 @@ def log():
 
 async def main():
     global LOGGINGLEVEL
-    logging.basicConfig(
-        level=logging.INFO, format="%(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
     LOGGINGLEVEL = 2
     log()
