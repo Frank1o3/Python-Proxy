@@ -149,11 +149,6 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             data = await reader.read(4096)
             if not data:
                 break
-            try:
-                reload(logger)
-                logger.log(logging,data)
-            except Exception as e:
-                logging.error(e)
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
@@ -217,7 +212,7 @@ async def main():
         level=logging.INFO, format="%(levelname)s - %(message)s"
     )
     server_ip, server_port = get_server_address()
-    LOGGINGLEVEL = 3
+    LOGGINGLEVEL = 2
     log()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
