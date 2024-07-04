@@ -49,7 +49,7 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
                 Builds the docker imange, replace this /you/docker/file/full/path with you dockerfile full path pls :D
                 ```
 
-      bash docker run -d --restart=unless-stopped -p 8080:8080 --name python-proxy python-proxy
+      bash docker run -d --restart unless-stopped --network host --name python-proxy python-proxy
 
                 This command runs the container in detached mode
                 ```
