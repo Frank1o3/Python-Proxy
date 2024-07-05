@@ -3,7 +3,6 @@ from collections import defaultdict
 from urllib.parse import urlparse
 import netifaces as ni
 import http.client
-import CustomSite
 import asyncio
 import logging
 import certifi
@@ -39,8 +38,6 @@ with open(CONFIG, "r") as file:
         raise e
     finally:
         file.close()
-        
-CustomSite.run()
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:

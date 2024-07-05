@@ -23,6 +23,6 @@ def index():
     return render_template("index.html")
 
 
-def run():
+if __name__ == "__main__":
     ip = get_ip_addresses()[0]["addr"]
-    app.run(host=ip, port=3000,debug=False)
+    app.run(host=ip, port=3000,debug=True)
