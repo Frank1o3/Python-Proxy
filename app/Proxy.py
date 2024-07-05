@@ -68,6 +68,7 @@ async def handle_connect(
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
     for domain in CUSTOMDOMAINS:
+        logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
@@ -82,6 +83,9 @@ async def handle_connect(
             )
             port = domain["port"]
             break
+
+    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
+        logging.info(f"Host: {host} Port: {port}")
 
     for site in BLOCKED_SITES:
         if site in host:
@@ -114,6 +118,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
     )
 
     for domain in CUSTOMDOMAINS:
+        logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
@@ -129,6 +134,9 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             port = domain["port"]
             break
 
+    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
+        logging.info(f"Host: {host} Port: {port}")
+
     for site in BLOCKED_SITES:
         if site in host:
             logging.info(f"Connection to {site} blocked.")
@@ -136,9 +144,6 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             await writer.drain()
             writer.close()
             return
-
-    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
-        logging.info(f"Host: {host} Port: {port}")
 
     try:
         # Check if URL is in cache
@@ -163,7 +168,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         data = response.read()
 
         # Add retrieved data to cache
-        cache.add(url, data)
+        # cache.add(url, data)
         cache.evict_if_needed()
 
         writer.write(data)

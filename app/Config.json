@@ -16,7 +16,7 @@
             "port": "8081"
         },
         {
-            "name": "test.database.io",
+            "name": "io.net.database",
             "to": "0.0.0.0",
             "port": "8082"
         }

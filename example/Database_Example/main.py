@@ -17,7 +17,6 @@ def get_ip_addresses():
 
 app = Flask(__name__)
 
-
 # Database connection
 def get_db_connection():
     conn = sqlite3.connect("example/Database_Example/users.db")
@@ -56,7 +55,7 @@ def signup():
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
-
+        print(name,email,password)
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -83,7 +82,7 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-
+        print(email, password)
         conn = get_db_connection()
         cursor = conn.cursor()
 
