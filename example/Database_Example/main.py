@@ -55,7 +55,7 @@ def signup():
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
-        print(name,email,password)
+        
         conn = get_db_connection()
         cursor = conn.cursor()
 
