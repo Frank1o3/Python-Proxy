@@ -82,7 +82,7 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-        print(email, password)
+        
         conn = get_db_connection()
         cursor = conn.cursor()
 
