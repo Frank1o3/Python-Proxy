@@ -2,20 +2,6 @@ from flask import Flask, render_template, request
 import netifaces as ni
 import sqlite3
 
-
-def get_ip_addresses():
-    interfaces = ni.interfaces()
-    non_loopback_interfaces = [
-        interface for interface in interfaces if not interface.startswith("lo")
-    ]
-    ip_addresses = []
-    for interface in non_loopback_interfaces:
-        addrs = ni.ifaddresses(interface)
-        ipv4_addrs = addrs.get(ni.AF_INET, [])
-        ip_addresses.extend(ipv4_addrs)
-    return ip_addresses
-
-
 app = Flask(__name__)
 
 
@@ -106,6 +92,42 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    if request.method == "GET":
+        return render_template("Change_Password.html")
+    elif request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        new_password = request.form["new_password"]
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verify user exists by email and current password
+        cursor.execute(
+            "SELECT * FROM user WHERE email = ? AND password = ?", (email, password)
+        )
+        user = cursor.fetchone()
+
+        if user:
+            user_id = user["id"]
+
+            # Update user's password
+            cursor.execute(
+                "UPDATE user SET password = ? WHERE id = ?", (new_password, user_id)
+            )
+            conn.commit()
+            conn.close()
+            return f"Password updated successfully for user: {user["name"]}."
+        else:
+            conn.close()
+            return "Invalid email or current password. Password not updated."
+
+    # Handle other HTTP methods (PUT, DELETE, etc.) if necessary
+    return "Method not allowed."
+
+
 if __name__ == "__main__":
-    ip = get_ip_addresses()[0]["addr"]
-    app.run(host=ip, port=8020, debug=False)
+    ip = ni.ifaddresses(ni.interfaces()[1])[2][0]["addr"]
+    app.run(host=ip, port=8081, debug=False)

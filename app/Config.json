@@ -13,12 +13,7 @@
         {
             "name": "io.net.com",
             "to": "0.0.0.0",
-            "port": "8020"
-        },
-        {
-            "name": "io.net.database.com",
-            "to": "0.0.0.0",
-            "port": "8010"
+            "port": "8081"
         }
     ]
 }
