@@ -1,6 +1,7 @@
 from json import load, JSONDecodeError
 from collections import defaultdict
 from urllib.parse import urlparse
+from LRU import LRUCache
 import netifaces as ni
 import http.client
 import asyncio
@@ -12,10 +13,6 @@ import time
 import ssl
 import os
 
-# Cache dictionary to store HTTP responses
-save = 0
-cache = {}
-request_frequency = defaultdict(int)
 
 # Cache file path
 CONFIG: str = "app/Config.json"
@@ -38,6 +35,9 @@ with open(CONFIG, "r") as file:
         raise e
     finally:
         file.close()
+
+cache = LRUCache(MAX_CACHE_SIZE)
+
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
@@ -105,7 +105,6 @@ async def handle_connect(
 
 
 async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
-    global cache, request_frequency, save
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -113,8 +112,6 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         if parsed_url.port
         else 443 if parsed_url.scheme == "https" else 80
     )
-    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
-        logging.info(f"Host: {host} Port: {port}")
 
     for domain in CUSTOMDOMAINS:
         if host.startswith(domain["name"]):
@@ -142,42 +139,39 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
 
     if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
         logging.info(f"Host: {host} Port: {port}")
+
     try:
-        if url in cache:
+        # Check if URL is in cache
+        cached_data = cache.get(url)
+        if cached_data is not None:
             logging.info(f"Cache hit for {url.decode('utf-8')}")
-            writer.write(cache[url])
+            writer.write(cached_data)
             await writer.drain()
-            request_frequency[url] += 1
-            logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
-            if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
-                logging.info("evict_cache_items")
-                evict_cache_items()
-            if (save % MAX_CACHE_SIZE) == 0:
-                logging.info("saving cache")
-                save_cache()
+            cache.evict_if_needed()
             return
+
+        # If not in cache, make HTTP request
         if parsed_url.scheme == "https":
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
             conn = http.client.HTTPSConnection(host, port, context=context)
         else:
             conn = http.client.HTTPConnection(host, port)
+
         conn.request(method.decode("utf-8"), parsed_url.path)
         response = conn.getresponse()
         data = response.read()
-        cache[url] = data
-        request_frequency[url] += 1
-        logging.info(f"{len(cache)} {math.floor((MAX_CACHE_SIZE / 2))}")
-        if len(cache) >= math.floor((MAX_CACHE_SIZE / 2)):
-            logging.info("evict_cache_items")
-            evict_cache_items()
-        if (save % MAX_CACHE_SIZE) == 0:
-            logging.info("saving cache ")
-            save_cache()
+
+        # Add retrieved data to cache
+        cache.add(url, data)
+        cache.evict_if_needed()
+
         writer.write(data)
         await writer.drain()
+
     except Exception as e:
         logging.error(f"Error handling HTTP request: {e}")
+
     finally:
         writer.close()
 
@@ -212,33 +206,6 @@ def get_ip_addresses():
         ipv4_addrs = addrs.get(ni.AF_INET, [])
         ip_addresses.extend(ipv4_addrs)
     return ip_addresses
-
-
-def save_cache():
-    global cache
-    if os.path.exists(CACHE_FILE):
-        os.remove(CACHE_FILE)
-    time.sleep(0.5)
-    with open(CACHE_FILE, "wb") as file:
-        pickle.dump(cache, file)
-
-
-def evict_cache_items():
-    global cache, request_frequency
-    sorted_items = sorted(request_frequency.items(), key=lambda x: x[1], reverse=True)
-    while len(cache) > MAX_CACHE_SIZE:
-        url, _ = sorted_items.pop()
-        logging.info(f"Url: {url} was used: {request_frequency[url]}")
-        if request_frequency[url] < 5:
-            del request_frequency[url]
-            del cache[url]
-
-
-async def load_cache():
-    global cache
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "rb") as file:
-            cache = pickle.load(file)
 
 
 def get_server_address():
