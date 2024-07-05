@@ -184,7 +184,6 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 break
             writer.write(data)
             await writer.drain()
-            logging.debug(f"Relayed data: {data}")  # Added debug logging
     except asyncio.CancelledError:
         logging.info("Relay task cancelled.")
     except ConnectionResetError:
