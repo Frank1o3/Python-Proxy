@@ -1,59 +1,66 @@
-from json import load, JSONDecodeError
-from collections import defaultdict
-from urllib.parse import urlparse
-from LRU import LRUCache
-import netifaces as ni
-import http.client
 import asyncio
 import logging
-import certifi
-import pickle
-import math
-import time
 import ssl
 import os
+from json import load, JSONDecodeError
+from urllib.parse import urlparse
+from collections import defaultdict
+from LRU import LRUCache
+import certifi
+import http.client
+import netifaces as ni
 
-
-# Cache file path
-CONFIG: str = "app/Config.json"
-LOGGINGLEVEL = 3
-
+# Load configuration
+CONFIG = "app/Config.json"
 if not os.path.exists(CONFIG):
     CONFIG = CONFIG.replace("app/", "")
 
 if not os.path.exists(CONFIG):
-    raise FileExistsError(f"{CONFIG} file does not exists")
+    raise FileExistsError(f"{CONFIG} file does not exist")
 
 with open(CONFIG, "r") as file:
     try:
         data = load(file)
-        MAX_CACHE_SIZE: int = data["MAX_CACHE_SIZE"]
-        CACHE_FILE: str = data["CACHE_FILE"]
-        BLOCKED_SITES: list[str] = data["BlockSites"]
-        CUSTOMDOMAINS: list[dict[str, str, int]] = data["CustomDomains"]
+        MAX_CACHE_SIZE = data["MAX_CACHE_SIZE"]
+        CACHE_FILE = data["CACHE_FILE"]
+        BLOCKED_SITES = data["BlockSites"]
+        CUSTOMDOMAINS = data["CustomDomains"]
     except JSONDecodeError as e:
         raise e
-    finally:
-        file.close()
 
 cache = LRUCache(MAX_CACHE_SIZE)
+LOGGINGLEVEL = 3
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     try:
-        request = await reader.readuntil(b"\r\n\r\n")
-        if not request:
+        request_line = await reader.readuntil(b"\r\n")
+        if not request_line:
             return
-        request_line = request.split(b"\r\n")[0]
         method, url, version = request_line.split(b" ", 2)
         if LOGGINGLEVEL == 3:
-            logging.info(request)
+            logging.info(request_line)
         elif LOGGINGLEVEL >= 2 and LOGGINGLEVEL < 3:
             logging.info(f"Url: {url} Method: {method} Version: {version}")
+
+        headers = {}
+        body = b""
+        while True:
+            line = await reader.readuntil(b"\r\n")
+            if line == b"\r\n":
+                break
+            header = line.decode("utf-8").strip()
+            key, value = header.split(":", 1)
+            headers[key.strip()] = value.strip()
+
+        content_length = headers.get("Content-Length")
+        if content_length:
+            body = await reader.readexactly(int(content_length))
+
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
         else:
-            await handle_http(reader, writer, method, url, version)
+            await handle_http(reader, writer, method, url, version, headers, body)
     except asyncio.IncompleteReadError:
         logging.error("Error handling request: Incomplete request received")
     except Exception as e:
@@ -108,7 +115,9 @@ async def handle_connect(
         writer.close()
 
 
-async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version):
+async def handle_http(
+    reader, writer: asyncio.StreamWriter, method, url, version, headers, body
+):
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -146,21 +155,6 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             return
 
     try:
-        # Read headers and body
-        headers = {}
-        body = b""
-        while True:
-            line = await reader.readline()
-            if line == b"\r\n":
-                break
-            header = line.decode("utf-8").strip()
-            key, value = header.split(":", 1)
-            headers[key.strip()] = value.strip()
-
-        content_length = headers.get("Content-Length")
-        if content_length:
-            body = await reader.readexactly(int(content_length))
-
         # Check if URL is in cache
         cached_data = cache.get(url)
         if cached_data is not None:
@@ -178,7 +172,11 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         else:
             conn = http.client.HTTPConnection(host, port)
 
-        conn.request(method.decode("utf-8"), parsed_url.path, body, headers)
+        path = parsed_url.path or "/"
+        if parsed_url.query:
+            path += "?" + parsed_url.query
+
+        conn.request(method.decode("utf-8"), path, body, headers)
         response = conn.getresponse()
         data = response.read()
 
@@ -230,7 +228,7 @@ def get_ip_addresses():
 def get_server_address():
     server_ip = os.environ.get("PROXY_IP")
     server_port = int(os.environ.get("PROXY_PORT", 8080))
-    if server_ip == None or server_ip == "0.0.0.0":
+    if server_ip is None or server_ip == "0.0.0.0":
         server_ip = get_ip_addresses()[0]["addr"]
     return server_ip, server_port
 
@@ -239,8 +237,8 @@ def log():
     print("")
     logging.info("-" * 55)
     logging.info("Logging Levels 1 - 3")
-    logging.info("Level 1: Logs the http request host and its port.")
-    logging.info("Level 2: Logs the url method and version of a request.")
+    logging.info("Level 1: Logs the HTTP request host and its port.")
+    logging.info("Level 2: Logs the URL method and version of a request.")
     logging.info("Level 3: Logs the full request.")
     logging.info("Logging Level set to {}".format(LOGGINGLEVEL))
     logging.info("-" * 55)
@@ -266,6 +264,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("Server shutdown requested by user.")
-        # Add any cleanup code here if necessary
-        print("Server stopped.")
+        logging.info("Server shutdown gracefully.")
+    except Exception as e:
+        logging.error(f"Server encountered an error: {e}")
