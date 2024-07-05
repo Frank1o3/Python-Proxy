@@ -15,7 +15,9 @@ def get_ip_addresses():
         ip_addresses.extend(ipv4_addrs)
     return ip_addresses
 
+
 app = Flask(__name__)
+
 
 # Database connection
 def get_db_connection():
@@ -45,9 +47,11 @@ def init_db():
 
 init_db()  # Call init_db to ensure the table is created when the app starts
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -55,7 +59,7 @@ def signup():
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
-        
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -82,7 +86,7 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-        
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -104,4 +108,4 @@ def login():
 
 if __name__ == "__main__":
     ip = get_ip_addresses()[0]["addr"]
-    app.run(host=ip, port=8081, debug=False)
+    app.run(host=ip, port=8020, debug=False)
