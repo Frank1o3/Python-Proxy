@@ -146,6 +146,21 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
             return
 
     try:
+        # Read headers and body
+        headers = {}
+        body = b""
+        while True:
+            line = await reader.readline()
+            if line == b"\r\n":
+                break
+            header = line.decode("utf-8").strip()
+            key, value = header.split(":", 1)
+            headers[key.strip()] = value.strip()
+
+        content_length = headers.get("Content-Length")
+        if content_length:
+            body = await reader.readexactly(int(content_length))
+
         # Check if URL is in cache
         cached_data = cache.get(url)
         if cached_data is not None:
@@ -163,7 +178,7 @@ async def handle_http(reader, writer: asyncio.StreamWriter, method, url, version
         else:
             conn = http.client.HTTPConnection(host, port)
 
-        conn.request(method.decode("utf-8"), parsed_url.path)
+        conn.request(method.decode("utf-8"), parsed_url.path, body, headers)
         response = conn.getresponse()
         data = response.read()
 
