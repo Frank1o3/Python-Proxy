@@ -95,7 +95,7 @@ def login():
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
     if request.method == "GET":
-        return render_template("Change_Password.html")
+        return render_template("change_password.html")
     elif request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
@@ -119,10 +119,56 @@ def change_password():
             )
             conn.commit()
             conn.close()
-            return f"Password updated successfully for user: {user["name"]}."
+            return f"Password updated successfully for user: {user['name']}."
+
         else:
             conn.close()
             return "Invalid email or current password. Password not updated."
+
+    # Handle other HTTP methods (PUT, DELETE, etc.) if necessary
+    return "Method not allowed."
+
+
+@app.route("/change_email", methods=["GET", "POST"])
+def change_email():
+    if request.method == "GET":
+        return render_template("change_email.html")
+    elif request.method == "POST":
+        name = request.form["name"]
+        password = request.form["password"]
+        new_email = request.form["new_email"]
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verify user exists by name and current password
+        cursor.execute(
+            "SELECT * FROM user WHERE name = ? AND password = ?", (name, password)
+        )
+        user = cursor.fetchone()
+
+        if user:
+            user_id = user["id"]
+
+            # Check if new email already exists
+            cursor.execute("SELECT * FROM user WHERE email = ?", (new_email,))
+            existing_user = cursor.fetchone()
+
+            if existing_user:
+                conn.close()
+                return "Email already in use. Please choose a different one."
+            else:
+                # Update user's email
+                cursor.execute(
+                    "UPDATE user SET email = ? WHERE id = ?", (new_email, user_id)
+                )
+                conn.commit()
+                conn.close()
+                return f"Email updated successfully for user: {user['name']}."
+
+        else:
+            conn.close()
+            return "Invalid name or password. Email not updated."
 
     # Handle other HTTP methods (PUT, DELETE, etc.) if necessary
     return "Method not allowed."
