@@ -46,10 +46,10 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
       ````
       bash docker build -t python-proxy -f /you/docker/file/full/path .
 
-                Builds the docker imange, replace this /you/docker/file/full/path with you dockerfile full path pls :D
+                Builds the docker image, replace this /you/docker/file/full/path with you dockerfile full path pls :D
                 ```
 
-      bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy
+      bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy .
 
                 This command runs the container in detached mode
                 ```

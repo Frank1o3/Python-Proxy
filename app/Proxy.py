@@ -4,11 +4,11 @@ import ssl
 import os
 from json import load, JSONDecodeError
 from urllib.parse import urlparse
-from collections import defaultdict
 from LRU import LRUCache
 import certifi
 import http.client
 import netifaces as ni
+import struct
 
 # Load configuration
 CONFIG = "app/Config.json"
@@ -200,6 +200,8 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             data = await reader.read(4096)
             if not data:
                 break
+            if LOGGINGLEVEL >= 4:
+                print("INFO - ",data)
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
