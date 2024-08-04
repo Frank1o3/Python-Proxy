@@ -180,7 +180,7 @@ async def handle_http(
         data = response.read()
 
         # Add retrieved data to cache
-        # cache.add(url, data)
+        cache.add(url, data)
         cache.evict_if_needed()
 
         writer.write(data)
