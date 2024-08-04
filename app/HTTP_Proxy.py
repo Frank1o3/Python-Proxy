@@ -1,14 +1,13 @@
+from json import load, JSONDecodeError
+from urllib.parse import urlparse
+from LRU import LRUCache
+import netifaces as ni
+import http.client
+import certifi
 import asyncio
 import logging
 import ssl
 import os
-from json import load, JSONDecodeError
-from urllib.parse import urlparse
-from LRU import LRUCache
-import certifi
-import http.client
-import netifaces as ni
-import struct
 
 # Load configuration
 CONFIG = "app/Config.json"
