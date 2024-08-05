@@ -24,3 +24,9 @@ class LRUCache:
             self.cache.popitem(
                 last=False
             )  # Remove the first item (least recently used)
+
+    def replace(self, url, value):
+        for key in self.cache:
+            if key == url:
+                self.cache[key] = value
+        self.evict_if_needed()

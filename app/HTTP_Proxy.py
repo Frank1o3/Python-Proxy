@@ -156,14 +156,38 @@ async def handle_http(
     try:
         # Check if URL is in cache
         cached_data = cache.get(url)
-        if cached_data is not None:
-            logging.info(f"Cache hit for {url.decode('utf-8')}")
-            writer.write(cached_data)
-            await writer.drain()
-            cache.evict_if_needed()
-            return
 
-        # If not in cache, make HTTP request
+        if cached_data is not None:
+            # Make a request to fetch the current data
+            if parsed_url.scheme == "https":
+                context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                context.load_verify_locations(cafile=certifi.where())
+                conn = http.client.HTTPSConnection(host, port, context=context)
+            else:
+                conn = http.client.HTTPConnection(host, port)
+
+            path = parsed_url.path or "/"
+            if parsed_url.query:
+                path += "?" + parsed_url.query
+
+            conn.request(method.decode("utf-8"), path, body, headers)
+            response = conn.getresponse()
+            new_data = response.read()
+
+            # Compare the new data with the cached data
+            if new_data == cached_data:
+                logging.info(f"Cache hit for {url.decode('utf-8')}")
+                writer.write(cached_data)
+                await writer.drain()
+                return
+            else:
+                logging.info(f"Cache update for {url.decode('utf-8')}")
+                cache.replace(url, new_data)
+                writer.write(new_data)
+                await writer.drain()
+                return
+
+        # If not in cache, make HTTP request and cache the result
         if parsed_url.scheme == "https":
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             context.load_verify_locations(cafile=certifi.where())
@@ -189,6 +213,16 @@ async def handle_http(
     except Exception as e:
         logging.error(f"Error handling HTTP request: {e}")
 
+        if cached_data is not None:
+            logging.info(
+                f"Returning cached data for {url.decode('utf-8')} due to error."
+            )
+            writer.write(cached_data)
+            await writer.drain()
+        else:
+            writer.write(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
+            await writer.drain()
+
     finally:
         writer.close()
 
@@ -200,7 +234,7 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             if not data:
                 break
             if LOGGINGLEVEL >= 4:
-                print("INFO - ",data)
+                print("INFO - ", data)
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
@@ -225,12 +259,12 @@ def get_ip_addresses():
         ip_addresses.extend(ipv4_addrs)
     return ip_addresses
 
-
+  
 def get_server_address():
     server_ip = os.environ.get("PROXY_IP")
     server_port = int(os.environ.get("PROXY_PORT", 8080))
     if server_ip is None or server_ip == "0.0.0.0":
-        server_ip = get_ip_addresses()[0]["addr"]
+        server_ip = get_ip_addresses()[1]["addr"]
     return server_ip, server_port
 
 
