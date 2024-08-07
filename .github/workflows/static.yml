@@ -34,8 +34,8 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Copy Site files
         run: |
-          cp readme.html site/
-          cp install.html site/
+          cp README.md site/
+          cp INSTALL.md site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
