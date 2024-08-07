@@ -9,26 +9,31 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="sidebar">
+        <h2>Navigation</h2>
+        <ul>
+            <li><a href="#" onclick="loadContent('README.md')">README.md</a></li>
+            <li><a href="#" onclick="loadContent('INSTALL.md')">INSTALL.md</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
         <h1>Python Proxy</h1>
         <div class="content">
-            <h2>README</h2>
-            <pre id="readme"></pre>
-            <h2>INSTALL</h2>
-            <pre id="install"></pre>
+            <pre id="file-content"></pre>
         </div>
     </div>
 
     <script>
-        // Fetch and display the README.md content
-        fetch('README.md')
-            .then(response => response.text())
-            .then(text => document.getElementById('readme').textContent = text);
+        function loadContent(file) {
+            fetch(file)
+                .then(response => response.text())
+                .then(text => document.getElementById('file-content').textContent = text);
+        }
 
-        // Fetch and display the INSTALL.md content
-        fetch('INSTALL.md')
-            .then(response => response.text())
-            .then(text => document.getElementById('install').textContent = text);
+        // Load README.md by default
+        window.onload = () => {
+            loadContent('README.md');
+        };
     </script>
 </body>
 

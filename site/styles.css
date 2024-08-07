@@ -1,21 +1,47 @@
 body {
+    display: flex;
     background-color: black;
     color: white;
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
 }
 
-.container {
-    max-width: 800px;
-    margin: auto;
+.sidebar {
+    width: 200px;
     padding: 20px;
     background-color: #333;
-    border-radius: 10px;
+    height: 100vh;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
 }
 
-h1,
-h2 {
+.sidebar h2 {
+    text-align: center;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 10px 0;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar ul li a:hover {
+    text-decoration: underline;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+h1 {
     text-align: center;
 }
 
@@ -24,4 +50,6 @@ pre {
     padding: 15px;
     border-radius: 5px;
     overflow-x: auto;
+    white-space: pre-wrap;
+    /* Add this to wrap long lines */
 }
