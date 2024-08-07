@@ -34,10 +34,10 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Copy README and INSTALL to site directory
         run: |
+          cp index.html site/
+          cp styles.html site/
           cp readme.html site/
           cp install.html site/
-          cp README.md site/
-          cp INSTALL.md site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
