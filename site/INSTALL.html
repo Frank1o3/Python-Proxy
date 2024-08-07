@@ -84,7 +84,8 @@ docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
                                                         </li>
                                                         <li>Run the Docker container:
                                                                 <pre><code>bash
-docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy .
+docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e 
+PROXY_PORT=8080 --name python-proxy python-proxy .
                                 </code></pre>
                                                                 This command runs the container in detached mode.
                                                         </li>
