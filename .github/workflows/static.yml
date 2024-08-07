@@ -32,13 +32,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Copy README, INSTALL, and HTML files to site directory
+      - name: Copy README and INSTALL to site directory
         run: |
-          mkdir -p site
           cp README.md site/
           cp INSTALL.md site/
-          cp index.html site/
-          cp styles.css site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
