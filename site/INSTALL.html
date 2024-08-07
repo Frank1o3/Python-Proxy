@@ -7,6 +7,45 @@
         <title>Installation Instructions</title>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="styles.css">
+        <style>
+                .container {
+                        max-width: 800px;
+                        margin: auto;
+                        padding: 20px;
+                        background-color: #1f1f1f;
+                        border-radius: 8px;
+                        color: #e0e0e0;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                }
+
+                h1 {
+                        color: #90caf9;
+                        margin-bottom: 20px;
+                }
+
+                ol,
+                ul {
+                        margin: 20px 0;
+                        padding-left: 20px;
+                }
+
+                pre {
+                        background-color: #333;
+                        padding: 10px;
+                        border-radius: 4px;
+                        overflow-x: auto;
+                }
+
+                code {
+                        background-color: #333;
+                        padding: 2px 4px;
+                        border-radius: 4px;
+                }
+
+                strong {
+                        color: #90caf9;
+                }
+        </style>
 </head>
 
 <body>
@@ -16,15 +55,11 @@
                         <li><strong>Clone the repository</strong>: Clone this repository to your local machine.</li>
                         <li><strong>Install dependencies</strong>: Navigate to the project directory and run the
                                 following command to install the required Python packages:
-                                <pre><code>bash
-pip install -r requirements.txt
-                </code></pre>
+                                <pre><code>pip install -r requirements.txt</code></pre>
                         </li>
                         <li><strong>(Optional) Build Docker image</strong>: If you wish to containerize the application
                                 using Docker, build the Docker image by running:
-                                <pre><code>bash
-docker build -t proxy-server .
-                </code></pre>
+                                <pre><code>docker build -t proxy-server .</code></pre>
                                 This command builds a Docker image named <code>proxy-server</code> using the
                                 <code>Dockerfile</code> provided in the project. The Docker setup includes creating and
                                 using a virtual environment for Python dependencies.
@@ -40,32 +75,22 @@ docker build -t proxy-server .
                                                         <li>If you're using a virtual environment (which is
                                                                 recommended), activate it. If you haven't created a
                                                                 virtual environment yet, you can do so by running:
-                                                                <pre><code>bash
-python -m venv venv
-                                </code></pre>
+                                                                <pre><code>python -m venv venv</code></pre>
                                                                 And then activate it with:
                                                                 <ul>
                                                                         <li>On Windows:
-                                                                                <pre><code>bash
-.\venv\Scripts\activate
-                                        </code></pre>
+                                                                                <pre><code>.\venv\Scripts\activate</code></pre>
                                                                         </li>
                                                                         <li>On macOS and Linux:
-                                                                                <pre><code>bash
-source venv/bin/activate
-                                        </code></pre>
+                                                                                <pre><code>source venv/bin/activate</code></pre>
                                                                         </li>
                                                                 </ul>
                                                         </li>
                                                         <li>Install the required dependencies by running:
-                                                                <pre><code>bash
-pip install -r requirements.txt
-                                </code></pre>
+                                                                <pre><code>pip install -r requirements.txt</code></pre>
                                                         </li>
                                                         <li>Start the application by running:
-                                                                <pre><code>bash
-python app/main.py
-                                </code></pre>
+                                                                <pre><code>python app/main.py</code></pre>
                                                         </li>
                                                 </ol>
                                         </li>
@@ -75,24 +100,16 @@ python app/main.py
                                                         <li>Ensure Docker is installed and running on your system.</li>
                                                         <li>Navigate to the project directory in your terminal.</li>
                                                         <li>Build the Docker image (if you haven't already) by running:
-                                                                <pre><code>bash
-docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
-                                </code></pre>
-                                                                Builds the Docker image, replace this
-                                                                <code>/you/docker/file/full/path</code> with your
-                                                                Dockerfile's full path.
+                                                                <pre><code>docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .</code></pre>
+                                                                Replace <code>/path/to/Dockerfile</code> with the full
+                                                                path to your Dockerfile.
                                                         </li>
                                                         <li>Run the Docker container:
-                                                                <pre><code>bash
-docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e 
-PROXY_PORT=8080 --name python-proxy python-proxy .
-                                </code></pre>
+                                                                <pre><code>docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy</code></pre>
                                                                 This command runs the container in detached mode.
                                                         </li>
                                                         <li>View the Docker logs:
-                                                                <pre><code>bash
-docker logs -f python-proxy
-                                </code></pre>
+                                                                <pre><code>docker logs -f python-proxy</code></pre>
                                                                 This command lets you see the Docker image logs. If you
                                                                 don't want to see the logs, press <code>ctrl + c</code>
                                                                 to close or exit.

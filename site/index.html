@@ -13,17 +13,14 @@
     <div class="sidebar">
         <h2>Navigation</h2>
         <ul>
-            <li><a href="#" onclick="loadHTML('README.html')">README.md</a></li>
-            <li><a href="#" onclick="loadHTML('INSTALL.html')">INSTALL.md</a></li>
+            <li><a href="#" onclick="loadHTML('README.html')">README</a></li>
+            <li><a href="#" onclick="loadHTML('INSTALL.html')">INSTALL</a></li>
         </ul>
     </div>
     <div class="main-content">
         <h1>Python Proxy</h1>
-        <div class="content">
-            <div id="html-content"></div>
-        </div>
+        <div id="html-content" class="content"></div>
     </div>
-
     <script>
         function loadHTML(file) {
             fetch(file)
@@ -35,7 +32,7 @@
 
         // Load README.md by default
         window.onload = () => {
-            loadHTML('README.html');
+            loadHTML('readme.html');
         };
     </script>
 </body>
