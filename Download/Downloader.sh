@@ -3,11 +3,12 @@
 # List of URLs to download the files from
 urls=(
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/DOCKERFILE"
-    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/Config.json"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/Config.json"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/LRU.py"
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/requirements.txt"
-    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/Proxy.py"
-    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/cleanup.sh"
-    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/proxy.service"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/HTTP_Proxy.py"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/Download/cleanup.sh"
+    "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/Download/proxy.service"
 )
 
 download() {
