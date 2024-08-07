@@ -13,26 +13,35 @@
     <div class="sidebar">
         <h2>Navigation</h2>
         <ul>
-            <li><a href="#" onclick="loadHTML('README.html')">README</a></li>
-            <li><a href="#" onclick="loadHTML('INSTALL.html')">INSTALL</a></li>
+            <li><a href="#" onclick="loadContent('README.html')">README.md</a></li>
+            <li><a href="#" onclick="loadContent('INSTALL.html')">INSTALL.md</a></li>
         </ul>
     </div>
     <div class="main-content">
         <h1>Python Proxy</h1>
-        <div id="html-content" class="content"></div>
+        <div class="content">
+            <div id="html-content">
+                <!-- Content from README.html or INSTALL.html will be loaded here -->
+            </div>
+        </div>
     </div>
+
     <script>
-        function loadHTML(file) {
+        function loadContent(file) {
             fetch(file)
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('html-content').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('html-content').innerHTML = '<p>Error loading content.</p>';
+                    console.error('Error loading content:', error);
                 });
         }
 
-        // Load README.md by default
+        // Load README.md content by default
         window.onload = () => {
-            loadHTML('readme.html');
+            loadContent('README.html');
         };
     </script>
 </body>
