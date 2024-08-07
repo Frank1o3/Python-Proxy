@@ -28,8 +28,6 @@ jobs:
       - name: Copy files to site directory
         run: |
           mkdir -p site
-          cp index.html site/
-          cp styles.css site/
           cp readme.html site/
           cp install.html site/
       - name: Upload artifact
