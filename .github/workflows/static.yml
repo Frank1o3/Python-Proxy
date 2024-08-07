@@ -28,8 +28,8 @@ jobs:
       - name: Copy files to site directory
         run: |
           mkdir -p site
-          cp readme.html site/
-          cp install.html site/
+          cp readme.md site/
+          cp install.md site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
