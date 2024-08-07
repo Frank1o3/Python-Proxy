@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Proxy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Python Proxy</h1>
+        <div class="content">
+            <h2>README</h2>
+            <pre id="readme"></pre>
+            <h2>INSTALL</h2>
+            <pre id="install"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display the README.md content
+        fetch('README.md')
+            .then(response => response.text())
+            .then(text => document.getElementById('readme').textContent = text);
+
+        // Fetch and display the INSTALL.md content
+        fetch('INSTALL.md')
+            .then(response => response.text())
+            .then(text => document.getElementById('install').textContent = text);
+    </script>
+</body>
+
+</html>

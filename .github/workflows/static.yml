@@ -32,15 +32,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Copy README and INSTALL
+      - name: Copy README and INSTALL to site directory
         run: |
-          mkdir -p site
           cp README.md site/
           cp INSTALL.md site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the site directory containing README.md and INSTALL.md
+          # Upload the site directory containing HTML, CSS, README.md, and INSTALL.md
           path: 'site'
       - name: Deploy to GitHub Pages
         id: deployment
