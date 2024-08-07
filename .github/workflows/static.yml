@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Copy Site files
+      - name: Copy README and INSTALL to site directory
         run: |
           cp README.md site/
           cp INSTALL.md site/
