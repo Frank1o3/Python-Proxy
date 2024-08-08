@@ -3,11 +3,14 @@
 ## Supported Versions
 
 Downloader version 1.0.0 is Supported
+New Version 1.5.0 Is Supported
+
 The Proxy Code May Change
 
 | Version | Supported          |
 | ------- | ------------------ |
 | 1.0.0   | :white_check_mark: |
+| 1.5.0   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
