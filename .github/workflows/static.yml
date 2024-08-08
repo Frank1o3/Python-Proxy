@@ -35,6 +35,9 @@ jobs:
       - name: Copy README to site directory
         run: |
           cp README.md site/
+          cp Support.md site/
+          cp Linux.md site/
+          cp Windows.md site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
