@@ -43,7 +43,7 @@
 
       bash pip install -r requirements.txt
 
-           5. Start the application by running:
+             Start the application by running:
               ```
 
       bash python app/HTTP_Proxy.py
