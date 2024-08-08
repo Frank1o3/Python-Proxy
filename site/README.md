@@ -24,7 +24,7 @@ The project requires the following Python packages:
 These dependencies are listed in the `requirements.txt` file.
 
 ## Install and use the Proxy
-To to this link [INSTALL.md](https://github.com/Frank1o3/Python-Proxy/blob/main/INSTALL.md)
+Go to Install on Windows or Linux Installettion guide
 
 ## Usage
 
