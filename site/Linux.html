@@ -12,71 +12,60 @@
 <body>
     <div class="container">
         <h1>Setup Instructions for Linux (with Docker support)</h1>
+
+        <h2>Docker Download With The Tool</h2>
+        <ol>
+            <li><strong>Get The Downloader</strong>: <a
+                    href="https://github.com/Frank1o3/Python-Proxy/releases/download/v1.5.0/Linux_Downloader.sh">Here</a>
+            </li>
+            <li><strong>Run The Tool</strong>: The tool will download the files needed.</li>
+            <li><strong>Build/Run</strong>: If you ran the tool but did not tell it to build the Docker container or do
+                the startup config, then run:
+                <pre><code>bash docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .</code></pre>
+                and after the container is built run:
+                <pre><code>bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy</code></pre>
+            </li>
+        </ol>
+
+        <h2>Download & Install The Proxy Without The Tool</h2>
         <ol>
             <li><strong>Clone the repository</strong>: Clone this repository to your local machine.</li>
+            <li><strong>Build Docker/Run the Container</strong>: To build the Docker container, run:
+                <pre><code>bash docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .</code></pre>
+                and after the container is built, run:
+                <pre><code>bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy</code></pre>
+            </li>
+            <li><strong>See Logs</strong>: To see the logs of the proxy, run:
+                <pre><code>bash docker logs -f python-proxy</code></pre>
+            </li>
+        </ol>
 
+        <h2>Download & Run The Proxy Without The Tool And Docker</h2>
+        <ol>
+            <li><strong>Clone the repository</strong>: Clone this repository to your local machine.</li>
+            <li><strong>Create The Virtual Environment</strong>: Navigate to the project directory and run the following
+                command to create the virtual environment:
+                <pre><code>bash python -m venv venv</code></pre>
+            </li>
             <li><strong>Install dependencies</strong>: Navigate to the project directory and run the following command
-                to
-                install the required Python packages:
-                <pre><code>pip install -r requirements.txt</code></pre>
+                to install the required Python packages:
+                <pre><code>bash pip install -r requirements.txt</code></pre>
             </li>
-
-            <li><strong>(Optional) Build Docker image</strong>: If you wish to containerize the application using
-                Docker,
-                build the Docker image by running:
-                <pre><code>docker build -t proxy-server .</code></pre>
-                This command builds a Docker image named <code>proxy-server</code> using the <code>Dockerfile</code>
-                provided in the project.
-            </li>
-
-            <li><strong>Run the application</strong>:
-                <ul>
-                    <li><strong>Directly</strong>: To run the application directly using Python, follow these steps:
-                        <ol>
-                            <li>Ensure you have Python 3.12.3 or higher installed on your system.</li>
-
-                            <li>Navigate to the project directory in your terminal.</li>
-
-                            <li>If you're using a virtual environment (which is recommended), activate it. If you
-                                haven't
-                                created a virtual environment yet, you can do so by running:
-                                <pre><code>python -m venv venv</code></pre>
-                                And then activate it with:
-                                <pre><code>source venv/bin/activate</code></pre>
-                            </li>
-
-                            <li>Install the required dependencies by running:
-                                <pre><code>pip install -r requirements.txt</code></pre>
-                            </li>
-
-                            <li>Start the application by running:
-                                <pre><code>python app/main.py</code></pre>
-                            </li>
-                        </ol>
+            <li><strong>Run The Application Directly</strong>: To run the application directly using Python, follow
+                these steps:
+                <ol>
+                    <li>Ensure you have Python 3.12.3 or higher installed on your system.</li>
+                    <li>Navigate to the project directory in your terminal.</li>
+                    <li>If you're using a virtual environment (which is recommended), activate it. If you haven't
+                        created a virtual environment yet, you can do so by running:
+                        <pre><code>bash python -m venv venv</code></pre>
+                        And then activate it with:
+                        <pre><code>source venv/bin/activate</code></pre>
                     </li>
-
-                    <li><strong>Using Docker</strong>: To run the application in a Docker container, follow these steps:
-                        <ol>
-                            <li>Ensure Docker is installed and running on your system.</li>
-                            <li>Navigate to the project directory in your terminal.</li>
-                            <li>Build the Docker image (if you haven't already) by running:
-                                <pre><code>docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .</code></pre>
-                                Builds the docker image
-                            </li>
-
-                            <li>Run the Docker container by running:
-                                <pre><code>docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy</code></pre>
-                                This command runs the container in detached mode.
-                            </li>
-
-                            <li>To see the Docker image logs, run:
-                                <pre><code>docker logs -f python-proxy</code></pre>
-                                This command will let you see the Docker image logs. If you don't want to see the logs,
-                                press <code>Ctrl + C</code> to close or exit.
-                            </li>
-                        </ol>
+                    <li>Start the application by running:
+                        <pre><code>bash python app/HTTP_Proxy.py</code></pre>
                     </li>
-                </ul>
+                </ol>
             </li>
         </ol>
     </div>
