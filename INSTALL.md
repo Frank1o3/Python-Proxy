@@ -3,7 +3,7 @@
 1. **Clone the repository**: Clone this repository to your local machine.
 
 2. **Install dependencies**: Navigate to the project directory and run the following command to install the required Python packages:
-   bash pip install -r requirements.txt
+   `bash pip install -r requirements.txt`
 
 3. **(Optional) Build Docker image**: If you wish to containerize the application using Docker, build the Docker image by running:
 
@@ -52,7 +52,7 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
                 This command runs the container in detached mode
                 ```
 
-      docker logs -f python-proxy
+      bash docker logs -f python-proxy
               This command will lets you see the docker image logs if you dont want to see the logs press ctrl + c to close or exit
               ```
       ````
