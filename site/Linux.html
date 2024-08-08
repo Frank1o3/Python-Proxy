@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Instructions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Setup Instructions for Linux (with Docker support)</h1>
+        <ol>
+            <li><strong>Clone the repository</strong>: Clone this repository to your local machine.</li>
+
+            <li><strong>Install dependencies</strong>: Navigate to the project directory and run the following command
+                to
+                install the required Python packages:
+                <pre><code>pip install -r requirements.txt</code></pre>
+            </li>
+
+            <li><strong>(Optional) Build Docker image</strong>: If you wish to containerize the application using
+                Docker,
+                build the Docker image by running:
+                <pre><code>docker build -t proxy-server .</code></pre>
+                This command builds a Docker image named <code>proxy-server</code> using the <code>Dockerfile</code>
+                provided in the project.
+            </li>
+
+            <li><strong>Run the application</strong>:
+                <ul>
+                    <li><strong>Directly</strong>: To run the application directly using Python, follow these steps:
+                        <ol>
+                            <li>Ensure you have Python 3.12.3 or higher installed on your system.</li>
+
+                            <li>Navigate to the project directory in your terminal.</li>
+
+                            <li>If you're using a virtual environment (which is recommended), activate it. If you
+                                haven't
+                                created a virtual environment yet, you can do so by running:
+                                <pre><code>python -m venv venv</code></pre>
+                                And then activate it with:
+                                <pre><code>source venv/bin/activate</code></pre>
+                            </li>
+
+                            <li>Install the required dependencies by running:
+                                <pre><code>pip install -r requirements.txt</code></pre>
+                            </li>
+
+                            <li>Start the application by running:
+                                <pre><code>python app/main.py</code></pre>
+                            </li>
+                        </ol>
+                    </li>
+
+                    <li><strong>Using Docker</strong>: To run the application in a Docker container, follow these steps:
+                        <ol>
+                            <li>Ensure Docker is installed and running on your system.</li>
+                            <li>Navigate to the project directory in your terminal.</li>
+                            <li>Build the Docker image (if you haven't already) by running:
+                                <pre><code>docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .</code></pre>
+                                Builds the docker image, replace this /you/docker/file/full/path with you dockerfile
+                                full
+                                path pls :D
+                            </li>
+
+                            <li>Run the Docker container by running:
+                                <pre><code>docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy</code></pre>
+                                This command runs the container in detached mode.
+                            </li>
+
+                            <li>To see the Docker image logs, run:
+                                <pre><code>docker logs -f python-proxy</code></pre>
+                                This command will let you see the Docker image logs. If you don't want to see the logs,
+                                press <code>Ctrl + C</code> to close or exit.
+                            </li>
+                        </ol>
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Instructions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body>
+    <div class="container">
+        <h1>Setup Instructions for Windows (without Docker support)</h1>
+        <ol>
+            <li><strong>Clone the repository</strong>: Clone this repository to your local machine.</li>
+
+            <li><strong>Install dependencies</strong>: Navigate to the project directory and run the following command
+                to
+                install the required Python packages:
+                <pre><code>pip install -r requirements.txt</code></pre>
+            </li>
+
+            <li><strong>Run the application</strong>:
+                <ul>
+                    <li><strong>Directly</strong>: To run the application directly using Python, follow these steps:
+                        <ol>
+                            <li>Ensure you have Python 3.12.3 or higher installed on your system.</li>
+
+                            <li>Navigate to the project directory in your terminal.</li>
+
+                            <li>If you're using a virtual environment (which is recommended), activate it. If you
+                                haven't
+                                created a virtual environment yet, you can do so by running:
+                                <pre><code>python -m venv venv</code></pre>
+                                And then activate it with:
+                                <pre><code>.\venv\Scripts\activate</code></pre>
+                            </li>
+
+                            <li>Install the required dependencies by running:
+                                <pre><code>pip install -r requirements.txt</code></pre>
+                            </li>
+
+                            <li>Start the application by running:
+                                <pre><code>python app/main.py</code></pre>
+                            </li>
+                        </ol>
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+</body>
+
+</html>
