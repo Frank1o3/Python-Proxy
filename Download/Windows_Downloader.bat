@@ -1,6 +1,7 @@
 @echo off
 
 :: List of URLs to download the files from
+setlocal enabledelayedexpansion
 set urls=(
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/DOCKERFILE"
     "https://raw.githubusercontent.com/Frank1o3/Python-Proxy/main/app/Config.json"
@@ -25,13 +26,19 @@ if not exist "%APP_DIR%" (
 
 :: Download the files
 for %%u in %urls% do (
-    powershell -Command "Invoke-WebRequest -Uri %%~u -OutFile %DIR_NAME%\%%~nxu"
+    powershell -Command "Invoke-WebRequest -Uri %%~u -OutFile \"%DIR_NAME%\%%~nxu\""
 )
 
 :: Move specific files to the app directory
-move "%DIR_NAME%\HTTP_Proxy.py" "%APP_DIR%" >nul
-move "%DIR_NAME%\LRU.py" "%APP_DIR%" >nul
-move "%DIR_NAME%\Config.json" "%APP_DIR%" >nul
+if exist "%DIR_NAME%\HTTP_Proxy.py" (
+    move "%DIR_NAME%\HTTP_Proxy.py" "%APP_DIR%" >nul
+)
+if exist "%DIR_NAME%\LRU.py" (
+    move "%DIR_NAME%\LRU.py" "%APP_DIR%" >nul
+)
+if exist "%DIR_NAME%\Config.json" (
+    move "%DIR_NAME%\Config.json" "%APP_DIR%" >nul
+)
 
 timeout /t 1 >nul
 

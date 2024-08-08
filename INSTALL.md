@@ -45,8 +45,6 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
 
       ````
       bash docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
-
-                Builds the docker image, replace this /you/docker/file/full/path with you dockerfile full path pls :D
                 ```
 
       bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy .
