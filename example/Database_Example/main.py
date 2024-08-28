@@ -45,7 +45,6 @@ def signup():
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -72,7 +71,6 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -100,7 +98,6 @@ def change_password():
         email = request.form["email"]
         password = request.form["password"]
         new_password = request.form["new_password"]
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -137,7 +134,6 @@ def change_email():
         name = request.form["name"]
         password = request.form["password"]
         new_email = request.form["new_email"]
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -169,6 +165,38 @@ def change_email():
         else:
             conn.close()
             return "Invalid name or password. Email not updated."
+
+    # Handle other HTTP methods (PUT, DELETE, etc.) if necessary
+    return "Method not allowed."
+
+
+@app.route("/delete_account", methods=["GET", "POST"])
+def delete_account():
+    if request.method == "GET":
+        return render_template("delete_account.html")
+    elif request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if user exists
+        cursor.execute(
+            "SELECT * FROM user WHERE name = ? AND email = ? AND password = ?",
+            (name, email, password),
+        )
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            # Delete the user's data
+            cursor.execute("DELETE FROM user WHERE id = ?", (existing_user["id"],))
+            conn.commit()
+            conn.close()
+            return "Account Deleted!"
+        else:
+            conn.close()
+            return "Account not found or incorrect credentials. No account deleted."
 
     # Handle other HTTP methods (PUT, DELETE, etc.) if necessary
     return "Method not allowed."

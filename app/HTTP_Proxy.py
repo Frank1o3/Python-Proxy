@@ -264,7 +264,7 @@ def get_server_address():
     server_ip = os.environ.get("PROXY_IP")
     server_port = int(os.environ.get("PROXY_PORT", 8080))
     if server_ip is None or server_ip == "0.0.0.0":
-        server_ip = get_ip_addresses()[1]["addr"]
+        server_ip = get_ip_addresses()[0]["addr"]
     return server_ip, server_port
 
 
