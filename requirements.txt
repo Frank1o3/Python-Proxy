@@ -1,3 +1,4 @@
 Flask
+psutil
 certifi
-netifaces
+pysqlite3

@@ -1,11 +1,12 @@
 from json import load, JSONDecodeError
 from urllib.parse import urlparse
 from LRU import LRUCache
-import netifaces as ni
 import http.client
 import certifi
 import asyncio
 import logging
+import psutil
+import socket
 import ssl
 import os
 
@@ -78,7 +79,7 @@ async def handle_connect(
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
-                localIP = get_ip_addresses()[0]["addr"]
+                localIP = get_ip_addresses()
             else:
                 localIP = None
             host = "".join(
@@ -130,7 +131,7 @@ async def handle_http(
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
-                localIP = get_ip_addresses()[0]["addr"]
+                localIP = get_ip_addresses()
             else:
                 localIP = None
             host = "".join(
@@ -248,23 +249,43 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 
 def get_ip_addresses():
-    interfaces = ni.interfaces()
-    non_loopback_interfaces = [
-        interface for interface in interfaces if not interface.startswith("lo")
-    ]
-    ip_addresses = []
-    for interface in non_loopback_interfaces:
-        addrs = ni.ifaddresses(interface)
-        ipv4_addrs = addrs.get(ni.AF_INET, [])
-        ip_addresses.extend(ipv4_addrs)
-    return ip_addresses
+    interfaces = psutil.net_if_addrs()
+    ethernet_ip = None
+    wireless_ip = None
 
-  
+    for interface_name, interface_addresses in interfaces.items():
+        for address in interface_addresses:
+            if address.family == socket.AF_INET:
+                if "eth" in interface_name.lower() or "en" in interface_name.lower():
+                    ethernet_ip = address.address
+                elif "wlan" in interface_name.lower() or "wl" in interface_name.lower():
+                    wireless_ip = address.address
+    if ethernet_ip:
+        return ethernet_ip
+    elif wireless_ip:
+        return wireless_ip
+    else:
+        return "127.0.0.1"
+
+
+def find_available_port(start_port=8080, end_port=65535):
+    for port in range(start_port, end_port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("", port))
+                return port
+            except socket.error:
+                continue
+    raise RuntimeError("No available port found")
+
+
 def get_server_address():
-    server_ip = os.environ.get("PROXY_IP")
-    server_port = int(os.environ.get("PROXY_PORT", 8080))
+    server_ip = os.environ.get("IP")
+    server_port = int(os.environ.get("PORT"))
     if server_ip is None or server_ip == "0.0.0.0":
-        server_ip = get_ip_addresses()[0]["addr"]
+        server_ip = get_ip_addresses()
+    if server_port is None or server_port != 8080:
+        server_port = find_available_port()
     return server_ip, server_port
 
 

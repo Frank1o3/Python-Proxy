@@ -44,15 +44,16 @@ This command builds a Docker image named `proxy-server` using the `Dockerfile` p
       - **Using Docker**: To run the application in a Docker container, follow these steps: 1. Ensure Docker is installed and running on your system. 2. Navigate to the project directory in your terminal. 3. Build the Docker image (if you haven't already) by running:
 
       ````
-      bash docker build -t python-proxy -f "$(pwd)/DOCKERFILE" .
-                ```
+        bash sudo docker build -t python-proxy .
+        ```
 
-      bash docker run -d --restart unless-stopped --network host -e PROXY_IP="0.0.0.0" -e PROXY_PORT=8080 --name python-proxy python-proxy .
+        bash docker run -d --restart unless-stopped --network host --name python-proxy python-proxy
 
-                This command runs the container in detached mode
-                ```
 
-      bash docker logs -f python-proxy
-              This command will lets you see the docker image logs if you dont want to see the logs press ctrl + c to close or exit
-              ```
+        This command runs the container in detached mode without changing args
+        ```
+                bash docker logs -f python-proxy
+        
+        This command will lets you see the docker image logs if you dont want to see the logs press ctrl + c to close or exit
+        ```
       ````

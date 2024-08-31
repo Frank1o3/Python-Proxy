@@ -12,13 +12,20 @@ RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 COPY app/HTTP_Proxy.py .
 COPY app/LRU.py .
 COPY app/Config.json .
+COPY example/Database_Example ./Database_Example/
 
-# Expose ports
-EXPOSE 8080
+# Set args
+ARG DEFAULT_IP="0.0.0.0"
+ARG DEFAULT_PORT=8080
 
 # Set environment variables
-ENV PROXY_IP="0.0.0.0"
-ENV PROXY_PORT=8080
+ENV IP $DEFAULT_IP
+ENV PORT $DEFAULT_PORT
+
+EXPOSE $PORT
 
 # Run the proxy with signal handling
-CMD ["/venv/bin/python", "Proxy.py"]
+
+RUN chmod +x HTTP_Proxy.py
+
+CMD ["/venv/bin/python", "HTTP_Proxy.py"]

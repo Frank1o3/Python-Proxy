@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
-import netifaces as ni
 import sqlite3
+import psutil
+import socket
 
 app = Flask(__name__)
 
@@ -30,9 +31,36 @@ def init_db():
         conn.commit()
         conn.close()
 
+def get_ip():
+    interfaces = psutil.net_if_addrs()
+    ethernet_ip = None
+    wireless_ip = None
+
+    for name, nit_address in interfaces.items():
+        for address in nit_address:
+            if address.family == socket.AF_INET:
+               if "eth" in name.lower() or "en" in name.lower():
+                  ethernet_i = address.address
+               elif "wlan" in name.lower() or "wl" in name.lower():
+                   wireless_ip = address.address
+    if ethernet_ip:
+       return ethernet_ip
+    elif wireless_ip:
+       return wireless_ip
+    else:
+       return "127.0.0.1"
+
+def get_port():
+    for port in range(8080,65535):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+             try:
+                s.bind(("",port))
+                return port
+             except socket.error:
+                continue
+    raise RuntimeError("No available port found")
 
 init_db()  # Call init_db to ensure the table is created when the app starts
-
 
 @app.route("/")
 def index():
@@ -203,5 +231,6 @@ def delete_account():
 
 
 if __name__ == "__main__":
-    ip = ni.ifaddresses(ni.interfaces()[1])[2][0]["addr"]
-    app.run(host=ip, port=8081, debug=False)
+    ip = get_ip()
+    port = get_port()
+    app.run(host=ip, port=port, debug=False)
