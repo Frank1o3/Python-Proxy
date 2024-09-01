@@ -284,7 +284,7 @@ def get_server_address():
     server_port = int(os.environ.get("PORT"))
     if server_ip is None or server_ip == "0.0.0.0":
         server_ip = get_ip_addresses()
-    if server_port is None or server_port == 8080:
+    if server_port is None or server_port == 80:
         server_port = find_available_port()
     return server_ip, server_port
 

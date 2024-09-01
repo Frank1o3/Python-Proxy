@@ -14,7 +14,7 @@ COPY example/Database_Example .
 
 # Set environment variables
 ARG DEFAULT_IP="0.0.0.0"
-ARG DEFAULT_PORT=8081
+ARG DEFAULT_PORT=80
 ENV IP $DEFAULT_IP
 ENV PORT $DEFAULT_PORT
 
