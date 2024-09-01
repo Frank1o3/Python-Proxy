@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Database connection
 def get_db_connection():
-    conn = sqlite3.connect("example/Database_Example/users.db")
+    conn = sqlite3.connect("Database_Example/users.db")
     conn.row_factory = sqlite3.Row  # Access rows by column names
     return conn
 
@@ -51,7 +51,7 @@ def get_ip():
        return "127.0.0.1"
 
 def get_port():
-    for port in range(8080,65535):
+    for port in range(8082,65535):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
              try:
                 s.bind(("",port))

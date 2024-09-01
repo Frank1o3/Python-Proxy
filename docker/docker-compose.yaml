@@ -6,14 +6,21 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - proxy
+      - proxy1
+      - proxy2
 
-  proxy:
+  proxy1:
     build:
       context: .
       dockerfile: Dockerfile.proxy
     ports:
       - "8080:8080"
+    restart: always
+
+  proxy2:
+    build:
+      context: .
+      dockerfile: Dockerfile.proxy
+    ports:
       - "8081:8081"
-      - "8082:8082"
     restart: always
