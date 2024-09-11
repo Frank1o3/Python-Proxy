@@ -7,11 +7,11 @@ body {
 }
 
 .sidebar {
-    width: 350px;
-    padding: 20px;
+    width: 500px;
+    padding: 30px;
     background-color: #1f1f1f;
     height: 100vh;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .sidebar h2 {
