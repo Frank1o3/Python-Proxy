@@ -7,7 +7,7 @@ body {
 }
 
 .sidebar {
-    width: 350px;
+    width: 300px;
     padding: 20px;
     background-color: #1f1f1f;
     height: 100vh;
@@ -61,6 +61,6 @@ h1 {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    max-width: 800px;
+    max-width: 900px;
     margin: auto;
 }
