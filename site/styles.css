@@ -8,7 +8,7 @@ body {
 
 .sidebar {
     width: 500px;
-    padding: 30px;
+    padding: 20px;
     background-color: #1f1f1f;
     height: 100vh;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
@@ -17,7 +17,7 @@ body {
 .sidebar h2 {
     text-align: center;
     color: #90caf9;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 .sidebar ul {
