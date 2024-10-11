@@ -281,7 +281,7 @@ def find_available_port(start_port=8080, end_port=65535):
 
 def get_server_address():
     server_ip = os.environ.get("IP")
-    server_port = int(os.environ.get("PORT"))
+    server_port = int(os.environ.get("PORT", 80))
     if server_ip is None or server_ip == "0.0.0.0":
         server_ip = get_ip_addresses()
     if server_port is None or server_port == 80:
@@ -305,7 +305,7 @@ async def main():
     global LOGGINGLEVEL
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
-    LOGGINGLEVEL = 2
+    LOGGINGLEVEL = 3
     log()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
