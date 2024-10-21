@@ -70,7 +70,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
 
 async def handle_connect(
-    reader: asyncio.StreamReader, writer: asyncio.StreamWriter, url
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter, url : bytes
 ):
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
@@ -81,7 +81,7 @@ async def handle_connect(
             if domain["to"] == "0.0.0.0":
                 localIP = get_ip_addresses()
             else:
-                localIP = None
+                localIP = ""
             host = "".join(
                 [
                     domain["to"] if domain["to"] != "0.0.0.0" else localIP,
@@ -116,7 +116,7 @@ async def handle_connect(
 
 
 async def handle_http(
-    reader, writer: asyncio.StreamWriter, method, url, version, headers, body
+    reader, writer: asyncio.StreamWriter, method, url : bytes, version, headers, body
 ):
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
@@ -133,7 +133,7 @@ async def handle_http(
             if domain["to"] == "0.0.0.0":
                 localIP = get_ip_addresses()
             else:
-                localIP = None
+                localIP = ""
             host = "".join(
                 [
                     domain["to"] if domain["to"] != "0.0.0.0" else localIP,
