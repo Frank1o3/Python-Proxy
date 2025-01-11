@@ -276,6 +276,8 @@ def find_available_port(start_port=8080, end_port=65535):
                 return port
             except socket.error:
                 continue
+            finally:
+                s.close()
     raise RuntimeError("No available port found")
 
 
