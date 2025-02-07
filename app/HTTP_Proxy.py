@@ -1,6 +1,7 @@
+"""Import's"""
+
 from json import load, JSONDecodeError
 from urllib.parse import urlparse
-from LRU import LRUCache
 import http.client
 import certifi
 import asyncio
@@ -10,6 +11,8 @@ import socket
 import ssl
 import os
 
+from LRU import LRUCache
+
 # Load configuration
 CONFIG = "app/Config.json"
 if not os.path.exists(CONFIG):
@@ -18,7 +21,7 @@ if not os.path.exists(CONFIG):
 if not os.path.exists(CONFIG):
     raise FileExistsError(f"{CONFIG} file does not exist")
 
-with open(CONFIG, "r") as file:
+with open(CONFIG, "r", encoding="UTF-8") as file:
     try:
         data = load(file)
         MAX_CACHE_SIZE = data["MAX_CACHE_SIZE"]
@@ -29,22 +32,18 @@ with open(CONFIG, "r") as file:
         raise e
 
 cache = LRUCache(MAX_CACHE_SIZE)
-LOGLEVEL = 3
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    """Handle Client's"""
     try:
         request_line = await reader.readuntil(b"\r\n")
         if not request_line:
             return
-        method, url, version = request_line.split(b" ", 2)
-        if LOGLEVEL == 3:
-            logging.info(request_line)
-        elif LOGLEVEL >= 2 and LOGLEVEL < 3:
-            logging.info(f"Url: {url} Method: {method} Version: {version}")
-
+        method, url, _ = request_line.split(b" ", 2)
         headers = {}
         body = b""
+
         while True:
             line = await reader.readuntil(b"\r\n")
             if line == b"\r\n":
@@ -60,7 +59,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         if method == b"CONNECT":
             await handle_connect(reader, writer, url)
         else:
-            await handle_http(reader, writer, method, url, version, headers, body)
+            await handle_http(writer, method, url, headers, body)
     except asyncio.IncompleteReadError:
         logging.error("Error handling request: Incomplete request received")
     except Exception as e:
@@ -70,12 +69,13 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
 
 async def handle_connect(
-    reader: asyncio.StreamReader, writer: asyncio.StreamWriter, url : bytes
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter, url: bytes
 ):
+    """Handle Connection's"""
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
+
     for domain in CUSTOMDOMAIN:
-        logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
@@ -91,12 +91,8 @@ async def handle_connect(
             port = domain["port"]
             break
 
-    if LOGLEVEL >= 1 and LOGLEVEL < 3:
-        logging.info(f"Host: {host} Port: {port}")
-
     for site in BLOCKED_SITES:
         if site in host:
-            logging.info(f"Connection to {site} blocked.")
             writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
             await writer.drain()
             writer.close()
@@ -116,8 +112,13 @@ async def handle_connect(
 
 
 async def handle_http(
-    reader, writer: asyncio.StreamWriter, method, url : bytes, version, headers, body
+    writer: asyncio.StreamWriter,
+    method: bytes,
+    url: bytes,
+    headers,
+    body: bytes,
 ):
+    """Handle Http Communication"""
     parsed_url = urlparse(url.decode("utf-8"))
     host = parsed_url.netloc.split(":")[0]
     port = (
@@ -127,7 +128,6 @@ async def handle_http(
     )
 
     for domain in CUSTOMDOMAIN:
-        logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
             if domain["to"] == "0.0.0.0":
@@ -143,12 +143,8 @@ async def handle_http(
             port = domain["port"]
             break
 
-    if LOGLEVEL >= 1 and LOGLEVEL < 3:
-        logging.info(f"Host: {host} Port: {port}")
-
     for site in BLOCKED_SITES:
         if site in host:
-            logging.info(f"Connection to {site} blocked.")
             writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
             await writer.drain()
             writer.close()
@@ -177,12 +173,10 @@ async def handle_http(
 
             # Compare the new data with the cached data
             if new_data == cached_data:
-                logging.info(f"Cache hit for {url.decode('utf-8')}")
                 writer.write(cached_data)
                 await writer.drain()
                 return
             else:
-                logging.info(f"Cache update for {url.decode('utf-8')}")
                 cache.replace(url, new_data)
                 writer.write(new_data)
                 await writer.drain()
@@ -215,9 +209,6 @@ async def handle_http(
         logging.error(f"Error handling HTTP request: {e}")
 
         if cached_data is not None:
-            logging.info(
-                f"Returning cached data for {url.decode('utf-8')} due to error."
-            )
             writer.write(cached_data)
             await writer.drain()
         else:
@@ -229,13 +220,12 @@ async def handle_http(
 
 
 async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    """Handle Relay's"""
     try:
         while True:
             data = await reader.read(4096)
             if not data:
                 break
-            if LOGLEVEL >= 4:
-                print("INFO - ", data)
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
@@ -249,6 +239,7 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 
 def get_ip_addresses():
+    """Get IP"""
     interfaces = psutil.net_if_addrs()
     ethernet_ip = None
     wireless_ip = None
@@ -269,6 +260,7 @@ def get_ip_addresses():
 
 
 def find_available_port(start_port=8080, end_port=65535):
+    """Get Port"""
     for port in range(start_port, end_port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -291,24 +283,9 @@ def get_server_address():
     return server_ip, server_port
 
 
-def log():
-    print("")
-    logging.info("-" * 55)
-    logging.info("Logging Levels 1 - 3")
-    logging.info("Level 1: Logs the HTTP request host and its port.")
-    logging.info("Level 2: Logs the URL method and version of a request.")
-    logging.info("Level 3: Logs the full request.")
-    logging.info("Logging Level set to {}".format(LOGLEVEL))
-    logging.info("-" * 55)
-    print("")
-
-
 async def main():
-    global LOGLEVEL
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
-    LOGLEVEL = 3
-    log()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
     )

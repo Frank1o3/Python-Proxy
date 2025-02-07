@@ -1,35 +1,40 @@
+"""Import's"""
+
 from collections import OrderedDict
 
 
-class LFUCache:
+class LRUCache:
+    """Cache"""
+
     def __init__(self, max_size):
-        self.cache = OrderedDict()  # Store the cache
-        self.access_count = {}  # Track how many times each key was accessed
+        self.cache = OrderedDict()
         self.max_size = max_size
 
     def add(self, key, value):
+        """Add"""
         if key in self.cache:
             del self.cache[key]  # Refresh position in OrderedDict
         self.cache[key] = value
-        self.access_count[key] = 0  # Initialize access count for the new entry
         self.evict_if_needed()
 
     def get(self, key):
+        """Get"""
         if key in self.cache:
-            # Increment the access count each time an item is accessed
-            self.access_count[key] += 1
+            # Move accessed item to the end (most recently used)
+            self.cache.move_to_end(key)
             return self.cache[key]
         return None
 
     def evict_if_needed(self):
+        """Evict"""
         while len(self.cache) > self.max_size:
-            # Evict the least-frequently used item
-            least_frequent_key = min(self.access_count, key=self.access_count.get)
-            del self.cache[least_frequent_key]
-            del self.access_count[least_frequent_key]
+            self.cache.popitem(
+                last=False
+            )  # Remove the first item (least recently used)
 
-    def replace(self, key, value):
-        if key in self.cache:
-            self.cache[key] = value
-            self.access_count[key] = 0  # Reset access count after replacement
+    def replace(self, url, value):
+        """Replace"""
+        for key in self.cache:
+            if key == url:
+                self.cache[key] = value
         self.evict_if_needed()

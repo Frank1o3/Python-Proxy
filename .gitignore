@@ -1,4 +1,4 @@
-venv
+.venv
 Proxy
 cache.pkl
 example/Database_Example/users.db
