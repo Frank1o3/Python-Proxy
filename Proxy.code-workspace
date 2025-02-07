@@ -3,5 +3,8 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"cSpell.words": ["addrs", "cafile", "levelname", "wlan"]
+	}
 }

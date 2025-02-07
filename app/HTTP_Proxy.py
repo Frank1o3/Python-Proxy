@@ -24,12 +24,12 @@ with open(CONFIG, "r") as file:
         MAX_CACHE_SIZE = data["MAX_CACHE_SIZE"]
         CACHE_FILE = data["CACHE_FILE"]
         BLOCKED_SITES = data["BlockSites"]
-        CUSTOMDOMAINS = data["CustomDomains"]
+        CUSTOMDOMAIN = data["CUSTOMDOMAIN"]
     except JSONDecodeError as e:
         raise e
 
 cache = LRUCache(MAX_CACHE_SIZE)
-LOGGINGLEVEL = 3
+LOGLEVEL = 3
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -38,9 +38,9 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
         if not request_line:
             return
         method, url, version = request_line.split(b" ", 2)
-        if LOGGINGLEVEL == 3:
+        if LOGLEVEL == 3:
             logging.info(request_line)
-        elif LOGGINGLEVEL >= 2 and LOGGINGLEVEL < 3:
+        elif LOGLEVEL >= 2 and LOGLEVEL < 3:
             logging.info(f"Url: {url} Method: {method} Version: {version}")
 
         headers = {}
@@ -74,7 +74,7 @@ async def handle_connect(
 ):
     host, _, port = url.decode("utf-8").rpartition(":")
     port = int(port)
-    for domain in CUSTOMDOMAINS:
+    for domain in CUSTOMDOMAIN:
         logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
@@ -91,7 +91,7 @@ async def handle_connect(
             port = domain["port"]
             break
 
-    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
+    if LOGLEVEL >= 1 and LOGLEVEL < 3:
         logging.info(f"Host: {host} Port: {port}")
 
     for site in BLOCKED_SITES:
@@ -126,7 +126,7 @@ async def handle_http(
         else 443 if parsed_url.scheme == "https" else 80
     )
 
-    for domain in CUSTOMDOMAINS:
+    for domain in CUSTOMDOMAIN:
         logging.info(domain["name"])
         if host.startswith(domain["name"]):
             args = host.removeprefix(domain["name"])
@@ -143,7 +143,7 @@ async def handle_http(
             port = domain["port"]
             break
 
-    if LOGGINGLEVEL >= 1 and LOGGINGLEVEL < 3:
+    if LOGLEVEL >= 1 and LOGLEVEL < 3:
         logging.info(f"Host: {host} Port: {port}")
 
     for site in BLOCKED_SITES:
@@ -234,7 +234,7 @@ async def relay(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             data = await reader.read(4096)
             if not data:
                 break
-            if LOGGINGLEVEL >= 4:
+            if LOGLEVEL >= 4:
                 print("INFO - ", data)
             writer.write(data)
             await writer.drain()
@@ -298,16 +298,16 @@ def log():
     logging.info("Level 1: Logs the HTTP request host and its port.")
     logging.info("Level 2: Logs the URL method and version of a request.")
     logging.info("Level 3: Logs the full request.")
-    logging.info("Logging Level set to {}".format(LOGGINGLEVEL))
+    logging.info("Logging Level set to {}".format(LOGLEVEL))
     logging.info("-" * 55)
     print("")
 
 
 async def main():
-    global LOGGINGLEVEL
+    global LOGLEVEL
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
-    LOGGINGLEVEL = 3
+    LOGLEVEL = 3
     log()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
