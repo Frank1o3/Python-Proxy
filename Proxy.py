@@ -276,10 +276,12 @@ class Proxy:
 
     async def Start(self) -> None:
         """Start the server"""
+
         if self.IP == "0.0.0.0":
             self.__get_ip()
+
         if self.PORT == 8080:
-            self.__find_available_port(19132)
+            self.__find_available_port()
 
         try:
             server = await start_server(
@@ -294,5 +296,5 @@ class Proxy:
 
 
 if __name__ == "__main__":
-    server = Proxy(PORT=19132)
+    server = Proxy()
     run(server.Start())
