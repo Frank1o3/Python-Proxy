@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Restricted</title>
+</head>
+
+<body>
+    <h1 id="translated-text">This site is not accessible because it contains content that is restricted for security,
+        privacy, or ethical reasons.</h1>
+
+    <script>
+        const translations = {
+            'en': "This site is not accessible because it contains content that is restricted for security, privacy, or ethical reasons.",
+            'es': "Este sitio no es accesible porque contiene contenido restringido por razones de seguridad, privacidad o ética.",
+            'fr': "Ce site n'est pas accessible car il contient du contenu restreint pour des raisons de sécurité, de confidentialité ou d'éthique.",
+            'de': "Diese Seite ist nicht zugänglich, da sie aus Sicherheits-, Datenschutz- oder ethischen Gründen eingeschränkt ist.",
+            'it': "Questo sito non è accessibile perché contiene contenuti limitati per motivi di sicurezza, privacy o etica.",
+            'pt': "Este site não é acessível porque contém conteúdo restrito por motivos de segurança, privacidade ou ética.",
+            'zh': "该网站无法访问，因为其内容因安全、隐私或道德原因受到限制。",
+            'ja': "このサイトには、セキュリティ、プライバシー、または倫理的な理由により制限されたコンテンツが含まれているため、アクセスできません。",
+            'ru': "Этот сайт недоступен, поскольку его содержимое ограничено по соображениям безопасности, конфиденциальности или этики."
+        };
+
+        function detectLanguage() {
+            let browserLang = navigator.language || navigator.userLanguage;
+            browserLang = browserLang.split('-')[0]; // Use base language code
+
+            const textElement = document.getElementById('translated-text');
+            textElement.textContent = translations[browserLang] || translations['en'];
+        }
+
+        detectLanguage();
+    </script>
+</body>
+
+</html>

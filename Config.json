@@ -1,12 +1,12 @@
 {
-    "BlockSites": [
+    "BlockedSites": [
         "pornhub",
         "porn",
         "xnxx",
         "onlyfans",
-        "xvideos"
+        "xvideos",
+        "xhamster"
     ],
-    "MAX_CACHE_SIZE": 25,
-    "CACHE_FILE": "cache.pkl",
-    "CUSTOMDOMAIN": []
+    "Max_Cache_Size": 25,
+    "Cache_File": "cache.json"
 }
