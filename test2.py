@@ -207,14 +207,6 @@ async def handle_http(
 
     except Exception as e:
         logging.error(f"Error handling HTTP request: {e}")
-
-        if cached_data is not None:
-            writer.write(cached_data)
-            await writer.drain()
-        else:
-            writer.write(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
-            await writer.drain()
-
     finally:
         writer.close()
 
@@ -259,7 +251,7 @@ def get_ip_addresses():
         return "127.0.0.1"
 
 
-def find_available_port(start_port=8080, end_port=65535):
+def find_available_port(start_port=19132, end_port=65535):
     """Get Port"""
     for port in range(start_port, end_port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -284,7 +276,8 @@ def get_server_address():
 
 
 async def main():
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.INFO,
+                        format="%(levelname)s - %(message)s")
     server_ip, server_port = get_server_address()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
