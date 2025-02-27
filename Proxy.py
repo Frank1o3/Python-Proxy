@@ -85,15 +85,17 @@ class Proxy:
             raise RuntimeError("Was not able to load JSON file: Config.json")
         except FileNotFoundError as e:
             logging.error(e)
+
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
+
         with open("site/block.html", "r", encoding="utf-8") as file:
             self.html_file = file.read().encode()
             file.close()
+
         self.cache = LRFUCache(
             self.data["Max_Cache_Size"], self.data["Max_Cache_Size"], self.data["Cache_File"])
-        logging.info(f"Blocked sites: {self.data["BlockedSites"]}")
 
     async def __handle_client(self, reader: StreamReader, writer: StreamWriter) -> None:
         """ Handle Client's"""
