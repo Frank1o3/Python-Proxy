@@ -137,7 +137,7 @@ class Proxy:
         )
 
         try:
-            if self.__Should_Block(host):
+            if self.__Should_Block(host) or host == "/" or not host:
                 writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
                 await writer.drain()
                 writer.close()
@@ -170,7 +170,7 @@ class Proxy:
         cache_key = f"{method.decode()}:{parsed_url.geturl()}"
 
         try:
-            if self.__Should_Block(host):
+            if self.__Should_Block(host) or host == "/" or not host:
                 writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
                 await writer.drain()
                 writer.close()
@@ -214,6 +214,8 @@ class Proxy:
         except ConnectionAbortedError as e:
             logging.error(e)
         except ConnectionRefusedError as e:
+            logging.error(e)
+        except socket.gaierror as e:
             logging.error(e)
         finally:
             writer.close()
@@ -271,6 +273,7 @@ class Proxy:
             "No available port found within the specified range")
 
     async def Start(self) -> None:
+        """Start the server"""
         if self.IP == "0.0.0.0":
             self.__get_ip()
         if self.PORT == 8080:
@@ -285,7 +288,7 @@ class Proxy:
                 logging.info(f"Serving at port {self.IP} on IP {self.PORT}")
                 await server.serve_forever()
         except KeyboardInterrupt:
-            self.cache._save_cache()
+            print("Shutting down server....")
 
 
 if __name__ == "__main__":
