@@ -262,27 +262,25 @@ class Proxy:
         self.IP = ethernet_ips[0] if ethernet_ips else (
             wireless_ips[0] if wireless_ips else "127.0.0.1")
 
-    async def __find_available_port(self, start_port=19132, end_port=65535, protocol=socket.SOCK_STREAM, fallback_port=8080) -> None:
+    async def __find_available_port(self, start_port=19132, end_port=65535, fallback_port=8080) -> None:
         """Find an available port within the given range, with a fallback."""
         for port in range(start_port, end_port):
-            with socket.socket(socket.AF_INET, protocol) as s:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 try:
-                    if protocol == socket.SOCK_STREAM:
-                        if s.connect_ex(("0.0.0.0", port)) != 0:  # Port is free
-                            self.PORT = port
-                            return  # Exit once we find an available port
-                    else:  # UDP requires binding
-                        s.bind(("0.0.0.0", port))
-                        self.PORT = port
-                        return
+                    # Bind immediately to lock the port
+                    s.bind(("0.0.0.0", port))
+                    # Ensure the port is usable for TCP connections
+                    s.listen(1)
+                    s.close()  # Close so the actual proxy server can use it
+                    self.PORT = port
+                    logging.info(f"Found available port: {self.PORT}")
+                    return  # Exit early once a free port is found
                 except OSError:
                     continue  # Port is in use, try the next one
-
         logging.warning(
-            f"No available port found, falling back to default: {fallback_port}")
-        self.PORT = fallback_port  # Fallback to default only if no ports were found
-
+            f"No available port found in range {start_port}-{end_port}, falling back to {fallback_port}")
+        self.PORT = fallback_port  # Fallback only if no port was found
 
     async def Start(self) -> None:
         """Start the server"""
