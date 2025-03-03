@@ -245,7 +245,7 @@ class Proxy:
                 return True
         return False
 
-    def __get_ip(self) -> None:
+    async def __get_ip(self) -> None:
         """Get the first available Ethernet or Wireless IP address."""
         interfaces = psutil.net_if_addrs()
         ethernet_ips = []
@@ -262,7 +262,7 @@ class Proxy:
         self.IP = ethernet_ips[0] if ethernet_ips else (
             wireless_ips[0] if wireless_ips else "127.0.0.1")
 
-    def __find_available_port(self, start_port=19132, end_port=65535, protocol=socket.SOCK_STREAM, fallback_port=8080) -> None:
+    async def __find_available_port(self, start_port=19132, end_port=65535, protocol=socket.SOCK_STREAM, fallback_port=8080) -> None:
         """Find an available port within the given range, with a fallback."""
         for port in range(start_port, end_port):
             with socket.socket(socket.AF_INET, protocol) as s:
@@ -271,22 +271,27 @@ class Proxy:
                     if protocol == socket.SOCK_STREAM:
                         if s.connect_ex(("0.0.0.0", port)) != 0:  # Port is free
                             self.PORT = port
+                            return  # Exit once we find an available port
                     else:  # UDP requires binding
                         s.bind(("0.0.0.0", port))
                         self.PORT = port
+                        return
                 except OSError:
                     continue  # Port is in use, try the next one
 
-        self.PORT = fallback_port  # Fallback to default if no port is available
+        logging.warning(
+            f"No available port found, falling back to default: {fallback_port}")
+        self.PORT = fallback_port  # Fallback to default only if no ports were found
+
 
     async def Start(self) -> None:
         """Start the server"""
 
         if self.IP == "0.0.0.0":
-            self.__get_ip()
+            await self.__get_ip()
 
         if self.PORT == 8080:
-            self.__find_available_port()
+            await self.__find_available_port()
 
         try:
             server = await start_server(
