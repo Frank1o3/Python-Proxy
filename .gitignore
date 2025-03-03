@@ -2,3 +2,4 @@
 Proxy
 cache.pkl
 example/Database_Example/users.db
+__pycache__
