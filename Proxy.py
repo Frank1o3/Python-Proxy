@@ -262,17 +262,22 @@ class Proxy:
         self.IP = ethernet_ips[0] if ethernet_ips else (
             wireless_ips[0] if wireless_ips else "127.0.0.1")
 
-    def __find_available_port(self, start_port=8080, end_port=65535, protocol=socket.SOCK_STREAM) -> None:
-        """Find an available port within the given range."""
+    def __find_available_port(self, start_port=19132, end_port=65535, protocol=socket.SOCK_STREAM, fallback_port=8080) -> None:
+        """Find an available port within the given range, with a fallback."""
         for port in range(start_port, end_port):
             with socket.socket(socket.AF_INET, protocol) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 try:
-                    s.bind(("", port))
-                    self.PORT
-                except socket.error:
-                    continue
-        raise RuntimeError(
-            "No available port found within the specified range")
+                    if protocol == socket.SOCK_STREAM:
+                        if s.connect_ex(("0.0.0.0", port)) != 0:  # Port is free
+                            self.PORT = port
+                    else:  # UDP requires binding
+                        s.bind(("0.0.0.0", port))
+                        self.PORT = port
+                except OSError:
+                    continue  # Port is in use, try the next one
+
+        self.PORT = fallback_port  # Fallback to default if no port is available
 
     async def Start(self) -> None:
         """Start the server"""
