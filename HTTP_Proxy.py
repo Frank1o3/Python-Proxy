@@ -288,7 +288,7 @@ class Proxy:
         if self.IP == "0.0.0.0":
             await self.__get_ip()
 
-        if self.PORT == 8080:
+        if self.PORT != 8080:
             await self.__find_available_port()
 
         try:

@@ -3,7 +3,7 @@ import asyncio
 import signal
 import logging
 import time
-from Proxy import Proxy
+from HTTP_Proxy import Proxy
 from typing import List
 
 processes: List[multiprocessing.Process] = []
